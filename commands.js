@@ -89,6 +89,40 @@ exports.commands = {
 			this.say(room, e.name + ": " + e.message);
 		}
 	},
+	uptime: function(arg, by, room) {
+		var text = config.excepts.indexOf(toId(by)) < 0 ? '/pm ' + by + ', **Uptime:** ' : '**Uptime:** ';
+		var divisors = [52, 7, 24, 60, 60];
+		var units = ['week', 'day', 'hour', 'minute', 'second'];
+		var buffer = [];
+		var uptime = ~~(process.uptime());
+		do {
+			var divisor = divisors.pop();
+			var unit = uptime % divisor;
+			buffer.push(unit > 1 ? unit + ' ' + units.pop() + 's' : unit + ' ' + units.pop());
+			uptime = ~~(uptime / divisor);
+		} while (uptime);
+
+		switch (buffer.length) {
+		case 5:
+			text += buffer[4] + ', ';
+			/* falls through */
+		case 4:
+			text += buffer[3] + ', ';
+			/* falls through */
+		case 3:
+			text += buffer[2] + ', ' + buffer[1] + ', and ' + buffer[0];
+			break;
+		case 2:
+			text += buffer[1] + ' and ' + buffer[0];
+			break;
+		case 1:
+			text += buffer[0];
+			break;
+		}
+
+		this.say(room, text);
+	}, 
+
 
 	/**
 	 * Room Owner commands
