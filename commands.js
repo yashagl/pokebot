@@ -21,11 +21,7 @@ exports.commands = {
 
 	credits: 'about',
 	about: function(arg, by, room) {
-		if (this.hasRank(by, '#~') || room.charAt(0) === ',') {
-			var text = '';
-		} else {
-			var text = '/pm ' + by + ', ';
-		}
+		var text = this.hasRank(by, '#~') || room.charAt(0) === ',' ? '' : '/pm ' + by + ', ';
 		text += '**Pokémon Showdown Bot** by: Quinella, TalkTakesTime, and Morfent';
 		this.say(room, text);
 	},
@@ -36,11 +32,7 @@ exports.commands = {
 	},
 	help: 'guide',
 	guide: function(arg, by, room) {
-		if (this.hasRank(by, '#~') || room.charAt(0) === ',') {
-			var text = '';
-		} else {
-			var text = '/pm ' + by + ', ';
-		}
+		var text = this.hasRank(by, '#~') || room.charAt(0) === ',' ? '' : '/pm ' + by + ', ';
 		if (config.botguide) {
 			text += 'A guide on how to use this bot can be found here: ' + config.botguide;
 		} else {
@@ -75,10 +67,10 @@ exports.commands = {
 		// "[" and "]" in the custom command to be executed can mess this up, so
 		// be careful with them.
 		if (arg.indexOf('[') === 0 && arg.indexOf(']') > -1) {
-			var tarRoom = arg.slice(1, arg.indexOf(']'));
+			room = arg.slice(1, arg.indexOf(']'));
 			arg = arg.substr(arg.indexOf(']') + 1).trim();
 		}
-		this.say(tarRoom || room, arg);
+		this.say(room, arg);
 	},
 	js: function(arg, by, room) {
 		if (config.excepts.indexOf(toId(by)) === -1) return false;
@@ -243,7 +235,7 @@ exports.commands = {
 				this.writeSettings();
 				this.say(room, 'The command ' + config.commandcharacter + '' + cmd + ' is now ' +
 					(settingsLevels[newRank] === newRank ? ' available for users of rank ' + newRank + ' and above.' :
-					(this.settings[cmd][room] ? 'available for all users in this room.' : 'unavailable for use in this room.')))
+					(this.settings[cmd][room] ? 'available for all users in this room.' : 'unavailable for use in this room.')));
 			}
 		}
 	},
@@ -478,11 +470,7 @@ exports.commands = {
 	},
 	usage: 'usagestats',
 	usagestats: function(arg, by, room) {
-		if (this.canUse('usagestats', room, by) || room.charAt(0) === ',') {
-			var text = '';
-		} else {
-			var text = '/pm ' + by + ', ';
-		}
+		var text = this.canUse('usagestats', room, by) || room.charAt(0) === ',' ? '' : '/pm ' + by + ', ';
 		text += 'http://www.smogon.com/stats/2015-02/';
 		this.say(room, text);
 	},
@@ -672,7 +660,7 @@ exports.commands = {
 				if (self.wifiRoom.docRevs[1] === meta.version) {
 					value = self.wifiRoom.scammers[value];
 					if (value) return self.say(room, text + '**The FC ' + arg[1] + ' belongs to a known scammer: ' + (value.length > 61 ? value + '..' : value) + '.**');
-					return self.say(room, text + 'This FC does not belong to a known scammer.')
+					return self.say(room, text + 'This FC does not belong to a known scammer.');
 				}
 				self.wifiRoom.docRevs[1] = meta.version;
 				self.getDocCsv(meta, function (data) {
