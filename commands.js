@@ -21,7 +21,7 @@ exports.commands = {
 
 	credits: 'about',
 	about: function(arg, by, room) {
-		var text = this.hasRank(by, '#~') || room.charAt(0) === ',' ? '' : '/pm ' + by + ', ';
+		var text = this.hasRank(by, '#&~') || room.charAt(0) === ',' ? '' : '/pm ' + by + ', ';
 		text += '**Pokémon Showdown Bot** by: Quinella, TalkTakesTime, and Morfent';
 		this.say(room, text);
 	},
@@ -32,7 +32,7 @@ exports.commands = {
 	},
 	help: 'guide',
 	guide: function(arg, by, room) {
-		var text = this.hasRank(by, '#~') || room.charAt(0) === ',' ? '' : '/pm ' + by + ', ';
+		var text = this.hasRank(by, '#&~') || room.charAt(0) === ',' ? '' : '/pm ' + by + ', ';
 		if (config.botguide) {
 			text += 'A guide on how to use this bot can be found here: ' + config.botguide;
 		} else {
@@ -124,7 +124,7 @@ exports.commands = {
 
 	settings: 'set',
 	set: function(arg, by, room) {
-		if (!this.hasRank(by, '%@&#~') || room.charAt(0) === ',') return false;
+		if (!this.hasRank(by, '%@&#&~') || room.charAt(0) === ',') return false;
 
 		var settable = {
 			say: 1,
@@ -159,7 +159,7 @@ exports.commands = {
 			if (!this.settings['modding']) this.settings['modding'] = {};
 			if (!this.settings['modding'][room]) this.settings['modding'][room] = {};
 			if (opts[2] && toId(opts[2])) {
-				if (!this.hasRank(by, '#~')) return false;
+				if (!this.hasRank(by, '#&~')) return false;
 				if (!(toId(opts[2]) in {on: 1, off: 1}))  return this.say(room, 'Incorrect command: correct syntax is ' + config.commandcharacter + 'set mod, [' +
 					Object.keys(modOpts).join('/') + '](, [on/off])');
 				if (toId(opts[2]) === 'off') {
@@ -227,7 +227,7 @@ exports.commands = {
 				this.say(room, msg);
 				return;
 			} else {
-				if (!this.hasRank(by, '#~')) return false;
+				if (!this.hasRank(by, '#&~')) return false;
 				var newRank = opts[1].trim();
 				if (!(newRank in settingsLevels)) return this.say(room, 'Unknown option: "' + newRank + '". Valid settings are: off/disable/false, +, %, @, &, #, ~, on/enable/true.');
 				if (!this.settings[cmd]) this.settings[cmd] = {};
@@ -244,7 +244,7 @@ exports.commands = {
 	ab: 'autoban',
 	autoban: function(arg, by, room) {
 		if (!this.canUse('autoban', room, by) || room.charAt(0) === ',') return false;
-		if (!this.hasRank(this.ranks[room] || ' ', '@&#~')) return this.say(room, config.nick + ' requires rank of @ or higher to (un)blacklist.');
+		if (!this.hasRank(this.ranks[room] || ' ', '@&#&~')) return this.say(room, config.nick + ' requires rank of @ or higher to (un)blacklist.');
 
 		arg = arg.split(',');
 		var added = [];
@@ -280,7 +280,7 @@ exports.commands = {
 	unab: 'unautoban',
 	unautoban: function(arg, by, room) {
 		if (!this.canUse('autoban', room, by) || room.charAt(0) === ',') return false;
-		if (!this.hasRank(this.ranks[room] || ' ', '@&#~')) return this.say(room, config.nick + ' requires rank of @ or higher to (un)blacklist.');
+		if (!this.hasRank(this.ranks[room] || ' ', '@&#&~')) return this.say(room, config.nick + ' requires rank of @ or higher to (un)blacklist.');
 
 		arg = arg.split(',');
 		var removed = [];
@@ -311,7 +311,7 @@ exports.commands = {
 	rab: 'regexautoban',
 	regexautoban: function(arg, by, room) {
 		if (config.regexautobanwhitelist.indexOf(toId(by)) < 0 || !this.canUse('autoban', room, by) || room.charAt(0) === ',') return false;
-		if (!this.hasRank(this.ranks[room] || ' ', '@&#~')) return this.say(room, config.nick + ' requires rank of @ or higher to (un)blacklist.');
+		if (!this.hasRank(this.ranks[room] || ' ', '@&#&~')) return this.say(room, config.nick + ' requires rank of @ or higher to (un)blacklist.');
 		if (!arg) return this.say(room, 'You must specify a regular expression to (un)blacklist.');
 
 		try {
@@ -329,7 +329,7 @@ exports.commands = {
 	unrab: 'unregexautoban',
 	unregexautoban: function(arg, by, room) {
 		if (config.regexautobanwhitelist.indexOf(toId(by)) < 0 || !this.canUse('autoban', room, by) || room.charAt(0) === ',') return false;
-		if (!this.hasRank(this.ranks[room] || ' ', '@&#~')) return this.say(room, config.nick + ' requires rank of @ or higher to (un)blacklist.');
+		if (!this.hasRank(this.ranks[room] || ' ', '@&#&~')) return this.say(room, config.nick + ' requires rank of @ or higher to (un)blacklist.');
 		if (!arg) return this.say(room, 'You must specify a regular expression to (un)blacklist.');
 
 		arg = '/' + arg.replace(/\\\\/g, '\\') + '/i';
@@ -375,7 +375,7 @@ exports.commands = {
 		var tarRoom = room;
 
 		if (room.charAt(0) === ',') {
-			if (!this.hasRank(by, '~')) return false;
+			if (config.excepts.indexOf(toId(by)) < 0) return false;
 			tarRoom = 'global';
 		}
 
@@ -393,7 +393,7 @@ exports.commands = {
 		var tarRoom = room;
 
 		if (room.charAt(0) === ',') {
-			if (!this.hasRank(by, '~')) return false;
+			if (config.excepts.indexOf(toId(by)) < 0) return false;
 			tarRoom = 'global';
 		}
 
@@ -413,7 +413,7 @@ exports.commands = {
 		var tarRoom = room;
 
 		if (room.charAt(0) === ',') {
-			if (!this.hasRank(by, '~')) return false;
+			if (config.excepts.indexOf(toId(by)) < 0) return false;
 			tarRoom = 'global';
 		}
 
@@ -842,6 +842,7 @@ exports.commands = {
 	b: 'buzz',
 	buzz: function(arg, by, room) {
 		if (this.buzzed || !this.canUse('buzz', room, by) || room.charAt(0) === ',') return false;
+
 		this.say(room, '**' + by.substr(1) + ' has buzzed in!**');
 		this.buzzed = by;
 		this.buzzer = setTimeout(function(room, buzzMessage) {
@@ -850,7 +851,7 @@ exports.commands = {
 		}.bind(this), 7 * 1000, room, by + ', your time to answer is up!');
 	},
 	reset: function(arg, by, room) {
-		if (!this.buzzed || !this.hasRank(by, '%@&#~') || room.charAt(0) === ',') return false;
+		if (!this.buzzed || !this.hasRank(by, '%@&#&~') || room.charAt(0) === ',') return false;
 		clearTimeout(this.buzzer);
 		this.buzzed = '';
 		this.say(room, 'The buzzer has been reset.');

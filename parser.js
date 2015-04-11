@@ -260,7 +260,7 @@ exports.parse = {
 	},
 	canUse: function(cmd, room, user) {
 		var canUse = false;
-		var ranks = ' +%@&#~';
+		var ranks = ' +%@&#&~';
 		if (!this.settings[cmd] || !this.settings[cmd][room]) {
 			canUse = this.hasRank(user, ranks.substr(ranks.indexOf((cmd === 'autoban' || cmd === 'banword') ? '#' : config.defaultrank)));
 		} else if (this.settings[cmd][room] === true) {
@@ -351,7 +351,7 @@ exports.parse = {
 		roomData.times.push(now);
 
 		// this deals with punishing rulebreakers, but note that the bot can't think, so it might make mistakes
-		if (config.allowmute && this.hasRank(this.ranks[room] || ' ', '%@&#~') && config.whitelist.indexOf(user) === -1) {
+		if (config.allowmute && this.hasRank(this.ranks[room] || ' ', '%@&#&~') && config.whitelist.indexOf(user) === -1) {
 			var useDefault = !(this.settings.modding && this.settings.modding[room]);
 			var pointVal = 0;
 			var muteMessage = '';
@@ -372,8 +372,8 @@ exports.parse = {
 			// moderation for flooding (more than x lines in y seconds)
 			var times = roomData.times;
 			var timesLen = times.length;
-			var isFlooding = (timesLen >= FLOOD_MESSAGE_NUM && (now - times[timesLen - FLOOD_MESSAGE_NUM]) < FLOOD_MESSAGE_TIME
-				&& (now - times[timesLen - FLOOD_MESSAGE_NUM]) > (FLOOD_PER_MSG_MIN * FLOOD_MESSAGE_NUM));
+			var isFlooding = (timesLen >= FLOOD_MESSAGE_NUM && (now - times[timesLen - FLOOD_MESSAGE_NUM]) < FLOOD_MESSAGE_TIME &&
+				(now - times[timesLen - FLOOD_MESSAGE_NUM]) > (FLOOD_PER_MSG_MIN * FLOOD_MESSAGE_NUM));
 			if ((useDefault || !('flooding' in modSettings)) && isFlooding) {
 				if (pointVal < 2) {
 					pointVal = 2;
@@ -410,10 +410,10 @@ exports.parse = {
 				}
 				if (config.privaterooms.indexOf(room) > -1 && cmd === 'warn') cmd = 'mute'; // can't warn in private rooms
 				// if the bot has % and not @, it will default to hourmuting as its highest level of punishment instead of roombanning
-				if (roomData.points >= 4 && !this.hasRank(this.ranks[room] || ' ', '@&#~')) cmd = 'hourmute';
+				if (roomData.points >= 4 && !this.hasRank(this.ranks[room] || ' ', '@&#&~')) cmd = 'hourmute';
 				if (userData.zeroTol > 4) { // if zero tolerance users break a rule they get an instant roomban or hourmute
 					muteMessage = ', Automated response: zero tolerance user';
-					cmd = this.hasRank(this.ranks[room] || ' ', '@&#~') ? 'roomban' : 'hourmute';
+					cmd = this.hasRank(this.ranks[room] || ' ', '@&#&~') ? 'roomban' : 'hourmute';
 				}
 				if (roomData.points > 1) userData.zeroTol++; // getting muted or higher increases your zero tolerance level (warns do not)
 				roomData.lastAction = now;
