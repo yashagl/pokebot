@@ -58,7 +58,7 @@ exports.commands = {
 	 */
 
 	reload: function(arg, by, room) {
-		if (!this.hasRank(by, '#~')) return false;
+		if (config.excepts.indexOf(toId(by)) < 0) return false;
 		try {
 			this.uncacheTree('./commands.js');
 			Commands = require('./commands.js').commands;
@@ -68,7 +68,7 @@ exports.commands = {
 		}
 	},
 	custom: function(arg, by, room) {
-		if (!this.hasRank(by, '~')) return false;
+		if (config.excepts.indexOf(toId(by)) < 0) return false;
 		// Custom commands can be executed in an arbitrary room using the syntax
 		// ".custom [room] command", e.g., to do !data pikachu in the room lobby,
 		// the command would be ".custom [lobby] !data pikachu". However, using
