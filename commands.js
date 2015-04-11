@@ -137,7 +137,6 @@ exports.commands = {
 		var settable = {
 			say: 1,
 			joke: 1,
-			choose: 1,
 			usagestats: 1,
 			buzz: 1,
 			'8ball': 1,
@@ -476,18 +475,6 @@ exports.commands = {
 			});
 		});
 		req.end();
-	},
-	choose: function(arg, by, room) {
-		if (arg.indexOf(',') === -1) {
-			var choices = arg.split(' ');
-		} else {
-			var choices = arg.split(',');
-		}
-		choices = choices.filter(function(i) {return (toId(i) !== '')});
-		if (choices.length < 2) return this.say(room, (room.charAt(0) === ',' ? '': '/pm ' + by + ', ') + config.commandcharacter + 'choose: You must give at least 2 valid choices.');
-
-		var choice = choices[Math.floor(Math.random()*choices.length)];
-		this.say(room, ((this.canUse('choose', room, by) || room.charAt(0) === ',') ? '':'/pm ' + by + ', ') + stripCommands(choice));
 	},
 	usage: 'usagestats',
 	usagestats: function(arg, by, room) {
