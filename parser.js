@@ -33,7 +33,7 @@ exports.parse = {
 	ranks: {},
 	blacklistRegexes: {},
 
-	data: function(data) {
+	data: function (data) {
 		if (data.substr(0, 1) === 'a') {
 			data = JSON.parse(data.substr(1));
 			if (data instanceof Array) {
@@ -45,7 +45,7 @@ exports.parse = {
 			}
 		}
 	},
-	splitMessage: function(message) {
+	splitMessage: function (message) {
 		if (!message) return;
 
 		var room = 'lobby';
@@ -70,7 +70,7 @@ exports.parse = {
 			this.message(spl[i], room);
 		}
 	},
-	message: function(message, room) {
+	message: function (message, room) {
 		var spl = message.split('|');
 		switch (spl[1]) {
 			case 'challstr':
@@ -97,13 +97,13 @@ exports.parse = {
 					};
 				}
 
-				var req = https.request(requestOptions, function(res) {
+				var req = https.request(requestOptions, function (res) {
 					res.setEncoding('utf8');
 					var data = '';
-					res.on('data', function(chunk) {
+					res.on('data', function (chunk) {
 						data += chunk;
 					});
-					res.on('end', function() {
+					res.on('end', function () {
 						if (data === ';') {
 							error('failed to log in; nick is registered - invalid or no password given');
 							process.exit(-1);
@@ -115,7 +115,7 @@ exports.parse = {
 
 						if (data.indexOf('heavy load') !== -1) {
 							error('the login server is under heavy load; trying again in one minute');
-							setTimeout(function() {
+							setTimeout(function () {
 								this.message(message);
 							}.bind(this), 60 * 1000);
 							return;
@@ -123,7 +123,7 @@ exports.parse = {
 
 						if (data.substr(0, 16) === '<!DOCTYPE html>') {
 							error('Connection error 522; trying agian in one minute');
-							setTimeout(function() {
+							setTimeout(function () {
 								this.message(message);
 							}.bind(this), 60 * 1000);
 							return;
@@ -142,7 +142,7 @@ exports.parse = {
 					}.bind(this));
 				}.bind(this));
 
-				req.on('error', function(err) {
+				req.on('error', function (err) {
 					error('login error: ' + sys.inspect(err));
 				});
 
@@ -213,7 +213,7 @@ exports.parse = {
 				break;
 		}
 	},
-	chatMessage: function(message, by, room) {
+	chatMessage: function (message, by, room) {
 		var cmdrMessage = '["' + room + '|' + by + '|' + message + '"]';
 		message = message.trim();
 		// auto accept invitations to rooms
@@ -245,7 +245,7 @@ exports.parse = {
 			}
 		}
 	},
-	say: function(room, text) {
+	say: function (room, text) {
 		if (room.charAt(0) !== ',') {
 			var str = (room !== 'lobby' ? room : '') + '|' + text;
 		} else {
@@ -254,11 +254,11 @@ exports.parse = {
 		}
 		send(str);
 	},
-	hasRank: function(user, rank) {
+	hasRank: function (user, rank) {
 		var hasRank = (rank.split('').indexOf(user.charAt(0)) !== -1) || (config.excepts.indexOf(toId(user)) !== -1);
 		return hasRank;
 	},
-	canUse: function(cmd, room, user) {
+	canUse: function (cmd, room, user) {
 		var canUse = false;
 		var ranks = ' +%@&#&~';
 		if (!this.settings[cmd] || !this.settings[cmd][room]) {
@@ -270,11 +270,11 @@ exports.parse = {
 		}
 		return canUse;
 	},
-	isBlacklisted: function(user, room) {
+	isBlacklisted: function (user, room) {
 		var blacklistRegex = this.blacklistRegexes[room];
 		return blacklistRegex && blacklistRegex.test(user);
 	},
-	blacklistUser: function(user, room) {
+	blacklistUser: function (user, room) {
 		var blacklist = this.settings.blacklist || (this.settings.blacklist = {});
 		if (blacklist[room]) {
 			if (blacklist[room][user]) return false;
@@ -286,7 +286,7 @@ exports.parse = {
 		this.updateBlacklistRegex(room);
 		return true;
 	},
-	unblacklistUser: function(user, room) {
+	unblacklistUser: function (user, room) {
 		var blacklist = this.settings.blacklist;
 		if (!blacklist || !blacklist[room] || !blacklist[room][user]) return false;
 
@@ -299,7 +299,7 @@ exports.parse = {
 		}
 		return true;
 	},
-	updateBlacklistRegex: function(room) {
+	updateBlacklistRegex: function (room) {
 		var blacklist = this.settings.blacklist[room];
 		var buffer = [];
 		for (var entry in blacklist) {
@@ -311,15 +311,15 @@ exports.parse = {
 		}
 		this.blacklistRegexes[room] = new RegExp(buffer.join('|'), 'i');
 	},
-	uploadToHastebin: function(toUpload, callback) {
+	uploadToHastebin: function (toUpload, callback) {
 		var reqOpts = {
 			hostname: "hastebin.com",
 			method: "POST",
 			path: '/documents'
 		};
 
-		var req = require('http').request(reqOpts, function(res) {
-			res.on('data', function(chunk) {
+		var req = require('http').request(reqOpts, function (res) {
+			res.on('data', function (chunk) {
 				if (callback && typeof callback === "function") callback("hastebin.com/raw/" + JSON.parse(chunk.toString())['key']);
 			});
 		});
@@ -327,7 +327,7 @@ exports.parse = {
 		req.write(toUpload);
 		req.end();
 	},
-	processChatData: function(user, room, msg) {
+	processChatData: function (user, room, msg) {
 		// NOTE: this is still in early stages
 		if (!user || room.charAt(0) === ',') return;
 
@@ -421,7 +421,7 @@ exports.parse = {
 			}
 		}
 	},
-	cleanChatData: function() {
+	cleanChatData: function () {
 		var chatData = this.chatData;
 		for (var user in chatData) {
 			for (var room in chatData[user]) {
@@ -447,7 +447,7 @@ exports.parse = {
 		}
 	},
 
-	updateSeen: function(user, type, detail) {
+	updateSeen: function (user, type, detail) {
 		if (type !== 'n' && config.rooms.indexOf(detail) === -1 || config.privaterooms.indexOf(toId(detail)) > -1) return;
 		var now = Date.now();
 		if (!this.chatData[user]) this.chatData[user] = {
@@ -480,7 +480,7 @@ exports.parse = {
 		userData.lastSeen = msg;
 		userData.seenAt = now;
 	},
-	getTimeAgo: function(time) {
+	getTimeAgo: function (time) {
 		time = ~~((Date.now() - time) / 1000);
 
 		var seconds = time % 60;
@@ -503,26 +503,26 @@ exports.parse = {
 		if (!times.length) return '0 seconds';
 		return times.join(', ');
 	},
-	writeSettings: (function() {
+	writeSettings: (function () {
 		var writing = false;
 		var writePending = false; // whether or not a new write is pending
-		var finishWriting = function() {
+		var finishWriting = function () {
 			writing = false;
 			if (writePending) {
 				writePending = false;
 				this.writeSettings();
 			}
 		};
-		return function() {
+		return function () {
 			if (writing) {
 				writePending = true;
 				return;
 			}
 			writing = true;
 			var data = JSON.stringify(this.settings);
-			fs.writeFile('settings.json.0', data, function() {
+			fs.writeFile('settings.json.0', data, function () {
 				// rename is atomic on POSIX, but will throw an error on Windows
-				fs.rename('settings.json.0', 'settings.json', function(err) {
+				fs.rename('settings.json.0', 'settings.json', function (err) {
 					if (err) {
 						// This should only happen on Windows.
 						fs.writeFile('settings.json', data, finishWriting);
@@ -533,14 +533,14 @@ exports.parse = {
 			});
 		};
 	})(),
-	uncacheTree: function(root) {
+	uncacheTree: function (root) {
 		var uncache = [require.resolve(root)];
 		do {
 			var newuncache = [];
 			for (var i = 0; i < uncache.length; ++i) {
 				if (require.cache[uncache[i]]) {
 					newuncache.push.apply(newuncache,
-						require.cache[uncache[i]].children.map(function(module) {
+						require.cache[uncache[i]].children.map(function (module) {
 							return module.filename;
 						})
 					);
@@ -550,7 +550,7 @@ exports.parse = {
 			uncache = newuncache;
 		} while (uncache.length > 0);
 	},
-	getDocMeta: function(id, callback) {
+	getDocMeta: function (id, callback) {
 		https.get('https://www.googleapis.com/drive/v2/files/' + id + '?key=' + config.googleapikey, function (res) {
 			var data = '';
 			res.on('data', function (part) {
@@ -566,7 +566,7 @@ exports.parse = {
 			});
 		});
 	},
-	getDocCsv: function(meta, callback) {
+	getDocCsv: function (meta, callback) {
 		https.get('https://docs.google.com/spreadsheet/pub?key=' + meta.id + '&output=csv', function (res) {
 			var data = '';
 			res.on('data', function (part) {

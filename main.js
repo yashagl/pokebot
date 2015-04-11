@@ -8,52 +8,52 @@
  * @license MIT license
  */
 
-global.info = function(text) {
+global.info = function (text) {
 	if (config.debuglevel > 3) return;
 	if (!colors) global.colors = require('colors');
 	console.log('info'.cyan + '  ' + text);
 };
 
-global.debug = function(text) {
+global.debug = function (text) {
 	if (config.debuglevel > 2) return;
 	if (!colors) global.colors = require('colors');
 	console.log('debug'.blue + ' ' + text);
 };
 
-global.recv = function(text) {
+global.recv = function (text) {
 	if (config.debuglevel > 0) return;
 	if (!colors) global.colors = require('colors');
 	console.log('recv'.grey + '  ' + text);
 };
 
-global.cmdr = function(text) { // receiving commands
+global.cmdr = function (text) { // receiving commands
 	if (config.debuglevel !== 1) return;
 	if (!colors) global.colors = require('colors');
 	console.log('cmdr'.grey + '  ' + text);
 };
 
-global.dsend = function(text) {
+global.dsend = function (text) {
 	if (config.debuglevel > 1) return;
 	if (!colors) global.colors = require('colors');
 	console.log('send'.grey + '  ' + text);
 };
 
-global.error = function(text) {
+global.error = function (text) {
 	if (!colors) global.colors = require('colors');
 	console.log('error'.red + ' ' + text);
 };
 
-global.ok = function(text) {
+global.ok = function (text) {
 	if (config.debuglevel > 4) return;
 	if (!colors) global.colors = require('colors');
 	console.log('ok'.green + '    ' + text);
 };
 
-global.toId = function(text) {
+global.toId = function (text) {
 	return text.toLowerCase().replace(/[^a-z0-9]/g, '');
 };
 
-global.stripCommands = function(text) {
+global.stripCommands = function (text) {
 	text = text.trim();
 	if (text.charAt(0) === '/') return '/' + text;
 	if (text.charAt(0) === '!' || /^>>>? /.test(text)) return ' ' + text;
@@ -66,15 +66,15 @@ function runNpm(command) {
 	var child_process = require('child_process');
 	var npm = child_process.spawn('npm', [command]);
 
-	npm.stdout.on('data', function(data) {
+	npm.stdout.on('data', function (data) {
 		process.stdout.write(data);
 	});
 
-	npm.stderr.on('data', function(data) {
+	npm.stderr.on('data', function (data) {
 		process.stderr.write(data);
 	});
 
-	npm.on('close', function(code) {
+	npm.on('close', function (code) {
 		if (!code) {
 			child_process.fork('main.js').disconnect();
 		}
@@ -117,7 +117,7 @@ if (!fs.existsSync('./config.js')) {
 
 global.config = require('./config.js');
 
-var checkCommandCharacter = function() {
+var checkCommandCharacter = function () {
 	if (!/[^a-z0-9 ]/i.test(config.commandcharacter)) {
 		error('invalid command character; should at least contain one non-alphanumeric character');
 		process.exit(-1);
@@ -126,7 +126,7 @@ var checkCommandCharacter = function() {
 
 checkCommandCharacter();
 
-var watchFile = function() {
+var watchFile = function () {
 	try {
 		return fs.watchFile.apply(fs, arguments);
 	} catch (e) {
@@ -135,7 +135,7 @@ var watchFile = function() {
 };
 
 if (config.watchconfig) {
-	watchFile('./config.js', function(curr, prev) {
+	watchFile('./config.js', function (curr, prev) {
 		if (curr.mtime <= prev.mtime) return;
 		try {
 			delete require.cache[require.resolve('./config.js')];
@@ -158,7 +158,7 @@ var queue = [];
 var dequeueTimeout = null;
 var lastSentAt = 0;
 
-global.send = function(data) {
+global.send = function (data) {
 	if (!connection.connected) return false;
 	
 	var now = Date.now();
@@ -188,41 +188,41 @@ function dequeue() {
 	send(queue.shift());
 }
 
-var connect = function(retry) {
+var connect = function (retry) {
 	if (retry) {
 		info('retrying...');
 	}
 
 	var ws = new WebSocketClient();
 
-	ws.on('connectFailed', function(err) {
+	ws.on('connectFailed', function (err) {
 		error('Could not connect to server ' + config.server + ': ' + sys.inspect(err));
 		info('retrying in one minute');
 
-		setTimeout(function() {
+		setTimeout(function () {
 			connect(true);
 		}, 60000);
 	});
 
-	ws.on('connect', function(con) {
+	ws.on('connect', function (con) {
 		connection = con;
 		ok('connected to server ' + config.server);
 
-		con.on('error', function(err) {
+		con.on('error', function (err) {
 			error('connection error: ' + sys.inspect(err));
 		});
 
-		con.on('close', function() {
+		con.on('close', function () {
 			// Is this always error or can this be intended...?
 			error('connection closed: ' + sys.inspect(arguments));
 			info('retrying in one minute');
 
-			setTimeout(function() {
+			setTimeout(function () {
 				connect(true);
 			}, 60000);
 		});
 
-		con.on('message', function(message) {
+		con.on('message', function (message) {
 			if (message.type === 'utf8') {
 				recv(sys.inspect(message.utf8Data));
 				Parse.data(message.utf8Data);
