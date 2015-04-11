@@ -560,7 +560,7 @@ exports.commands = {
 		// links to relevant sites for the Wi-Fi room 
 		if (config.serverid !== 'showdown') return false;
 		var text = '';
-		if (room = 'espaol') {
+		if (room === 'espaol') {
 			if (!this.canUse('guia', room, by)) text += '/pm ' + by + ', ';
 		} else if (room.charAt(0) !== ',') {
 			return false;
