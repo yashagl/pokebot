@@ -503,36 +503,72 @@ exports.commands = {
 		this.say(room, text);
 	},
 	'8ball': function(arg, by, room) {
-		if (this.canUse('8ball', room, by) || room.charAt(0) === ',') {
-			var text = '';
-		} else {
-			var text = '/pm ' + by + ', ';
-		}
-
-		var rand = ~~(20 * Math.random()) + 1;
+		var text = this.canUse('8ball', room, by) || room.charAt(0) === ',' ? '' : '/pm ' + by + ', ';
+		var rand = ~~(20 * Math.random());
 
 		switch (rand) {
-	 		case 1: text += "Signs point to yes."; break;
-	  		case 2: text += "Yes."; break;
-			case 3: text += "Reply hazy, try again."; break;
-			case 4: text += "Without a doubt."; break;
-			case 5: text += "My sources say no."; break;
-			case 6: text += "As I see it, yes."; break;
-			case 7: text += "You may rely on it."; break;
-			case 8: text += "Concentrate and ask again."; break;
-			case 9: text += "Outlook not so good."; break;
-			case 10: text += "It is decidedly so."; break;
-			case 11: text += "Better not tell you now."; break;
-			case 12: text += "Very doubtful."; break;
-			case 13: text += "Yes - definitely."; break;
-			case 14: text += "It is certain."; break;
-			case 15: text += "Cannot predict now."; break;
-			case 16: text += "Most likely."; break;
-			case 17: text += "Ask again later."; break;
-			case 18: text += "My reply is no."; break;
-			case 19: text += "Outlook good."; break;
-			case 20: text += "Don't count on it."; break;
+	 		case 0:
+				text += "Signs point to yes.";
+				break;
+	  		case 1:
+				text += "Yes.";
+				break;
+			case 2:
+				text += "Reply hazy, try again.";
+				break;
+			case 3:
+				text += "Without a doubt.";
+				break;
+			case 4:
+				text += "My sources say no.";
+				break;
+			case 5:
+				text += "As I see it, yes.";
+				break;
+			case 6:
+				text += "You may rely on it.";
+				break;
+			case 7:
+				text += "Concentrate and ask again.";
+				break;
+			case 8:
+				text += "Outlook not so good.";
+				break;
+			case 9:
+				text += "It is decidedly so.";
+				break;
+			case 10:
+				text += "Better not tell you now.";
+				break;
+			case 11:
+				text += "Very doubtful.";
+				break;
+			case 12:
+				text += "Yes - definitely.";
+				break;
+			case 13:
+				text += "It is certain.";
+				break;
+			case 14:
+				text += "Cannot predict now.";
+				break;
+			case 15:
+				text += "Most likely.";
+				break;
+			case 16:
+				text += "Ask again later.";
+				break;
+			case 17:
+				text += "My reply is no.";
+				break;
+			case 18:
+				text += "Outlook good.";
+				break;
+			case 19:
+				text += "Don't count on it.";
+				break;
 		}
+
 		this.say(room, text);
 	},
 
