@@ -124,7 +124,7 @@ exports.commands = {
 
 	settings: 'set',
 	set: function (arg, by, room) {
-		if (!this.hasRank(by, '%@&#&~') || room.charAt(0) === ',') return false;
+		if (!this.hasRank(by, '%@#&~') || room.charAt(0) === ',') return false;
 
 		var settable = {
 			say: 1,
@@ -244,7 +244,7 @@ exports.commands = {
 	ab: 'autoban',
 	autoban: function (arg, by, room) {
 		if (!this.canUse('autoban', room, by) || room.charAt(0) === ',') return false;
-		if (!this.hasRank(this.ranks[room] || ' ', '@&#&~')) return this.say(room, config.nick + ' requires rank of @ or higher to (un)blacklist.');
+		if (!this.hasRank(this.ranks[room] || ' ', '@#&~')) return this.say(room, config.nick + ' requires rank of @ or higher to (un)blacklist.');
 
 		arg = arg.split(',');
 		var added = [];
@@ -280,7 +280,7 @@ exports.commands = {
 	unab: 'unautoban',
 	unautoban: function (arg, by, room) {
 		if (!this.canUse('autoban', room, by) || room.charAt(0) === ',') return false;
-		if (!this.hasRank(this.ranks[room] || ' ', '@&#&~')) return this.say(room, config.nick + ' requires rank of @ or higher to (un)blacklist.');
+		if (!this.hasRank(this.ranks[room] || ' ', '@#&~')) return this.say(room, config.nick + ' requires rank of @ or higher to (un)blacklist.');
 
 		arg = arg.split(',');
 		var removed = [];
@@ -311,7 +311,7 @@ exports.commands = {
 	rab: 'regexautoban',
 	regexautoban: function (arg, by, room) {
 		if (config.regexautobanwhitelist.indexOf(toId(by)) < 0 || !this.canUse('autoban', room, by) || room.charAt(0) === ',') return false;
-		if (!this.hasRank(this.ranks[room] || ' ', '@&#&~')) return this.say(room, config.nick + ' requires rank of @ or higher to (un)blacklist.');
+		if (!this.hasRank(this.ranks[room] || ' ', '@#&~')) return this.say(room, config.nick + ' requires rank of @ or higher to (un)blacklist.');
 		if (!arg) return this.say(room, 'You must specify a regular expression to (un)blacklist.');
 
 		try {
@@ -329,7 +329,7 @@ exports.commands = {
 	unrab: 'unregexautoban',
 	unregexautoban: function (arg, by, room) {
 		if (config.regexautobanwhitelist.indexOf(toId(by)) < 0 || !this.canUse('autoban', room, by) || room.charAt(0) === ',') return false;
-		if (!this.hasRank(this.ranks[room] || ' ', '@&#&~')) return this.say(room, config.nick + ' requires rank of @ or higher to (un)blacklist.');
+		if (!this.hasRank(this.ranks[room] || ' ', '@#&~')) return this.say(room, config.nick + ' requires rank of @ or higher to (un)blacklist.');
 		if (!arg) return this.say(room, 'You must specify a regular expression to (un)blacklist.');
 
 		arg = '/' + arg.replace(/\\\\/g, '\\') + '/i';
@@ -851,7 +851,7 @@ exports.commands = {
 		}.bind(this), 7 * 1000, room, by + ', your time to answer is up!');
 	},
 	reset: function (arg, by, room) {
-		if (!this.buzzed || !this.hasRank(by, '%@&#&~') || room.charAt(0) === ',') return false;
+		if (!this.buzzed || !this.hasRank(by, '%@#&~') || room.charAt(0) === ',') return false;
 		clearTimeout(this.buzzer);
 		this.buzzed = '';
 		this.say(room, 'The buzzer has been reset.');
