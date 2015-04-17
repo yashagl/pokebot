@@ -133,14 +133,12 @@ exports.commands = {
 			buzz: 1,
 			'8ball': 1,
 			survivor: 1,
-			games: 1,
 			wifi: 1,
 			monotype: 1,
 			autoban: 1,
 			happy: 1,
 			guia: 1,
 			studio: 1,
-			'switch': 1,
 			banword: 1
 		};
 		var modOpts = {
@@ -600,11 +598,6 @@ exports.commands = {
 		};
 		this.say(room, text + (messages[toId(arg)] || ('Welcome to The Studio, a music sharing room on PS!. If you have any questions, feel free to PM a room staff member. Available commands for .studio: ' + Object.keys(messages).join(', '))));
 	},
-	'switch': function (arg, by, room) {
-		if (room !== 'gamecorner' || config.serverid !== 'showdown' || !this.canUse('switch', room, by)) return false;
-		this.say(room, 'Taking over the world. Starting with Game Corner. Room deregistered.');
-		this.say(room, '/k ' + (toId(arg) || by) + ', O3O YOU HAVE TOUCHED THE SWITCH');
-	},
 	wifi: function (arg, by, room) {
 		// links to relevant sites for the Wi-Fi room 
 		if (config.serverid !== 'showdown') return false;
@@ -797,18 +790,6 @@ exports.commands = {
 		if (!arg) return this.say(room, text + "The list of game types can be found here: http://survivor-ps.weebly.com/themes.html");
 		text += gameTypes[arg] || "Invalid game type. The game types can be found here: http://survivor-ps.weebly.com/themes.html";
 		this.say(room, text);
-	},
-	games: function (arg, by, room) {
-		// lists the games for the games room
-		if (config.serverid !== 'showdown') return false;
-		var text = '';
-		if (room === 'gamecorner') {
-			if (!this.canUse('games', room, by)) text += '/pm ' + by + ', ';
-		} else if (room.charAt(0) !== ',') {
-			return false;
-		}
-		this.say(room, text + 'Game List: 1. Would You Rather, 2. NickGames, 3. Scattegories, 4. Commonyms, 5. Questionnaires, 6. Funarios, 7. Anagrams, 8. Spot the Reference, 9. Pokemath, 10. Liar\'s Dice');
-		this.say(room, text + '11. Pun Game, 12. Dice Cup, 13. Who\'s That Pokemon?, 14. Pokemon V Pokemon (BST GAME), 15. Letter Getter, 16. Missing Link, 17. Parameters! More information can be found here: http://psgamecorner.weebly.com/games.html');
 	},
 	thp: 'happy',
 	thehappyplace: 'happy',
