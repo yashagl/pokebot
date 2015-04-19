@@ -232,7 +232,7 @@ exports.parse = {
 			var cmd = message;
 		}
 
-		if (Commands[cmd]) {
+		if (!!Commands[cmd]) {
 			var failsafe = 0;
 			while (typeof Commands[cmd] !== "function" && failsafe++ < 10) {
 				cmd = Commands[cmd];
@@ -254,9 +254,8 @@ exports.parse = {
 		}
 		send(str);
 	},
-	hasRank: function (user, rank) {
-		var hasRank = (rank.split('').indexOf(user.charAt(0)) !== -1) || (config.excepts.indexOf(toId(user)) !== -1);
-		return hasRank;
+	hasRank: function (user, ranks) {
+		return ranks.indexOf(user.charAt(0)) > -1 || config.excepts.indexOf(toId(user)) > -1;
 	},
 	canUse: function (cmd, room, user) {
 		var canUse = false;
