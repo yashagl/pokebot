@@ -204,8 +204,8 @@ exports.commands = {
 				'+': '+',
 				'%': '%',
 				'@': '@',
-				'&': '&',
 				'#': '#',
+				'&': '&',
 				'~': '~',
 				on: true,
 				enable: true,
@@ -260,13 +260,14 @@ exports.commands = {
 				continue;
 			}
 			this.say(room, '/roomban ' + tarUser + ', Blacklisted user');
-			this.say(room, '/modnote ' + tarUser + ' was added to the blacklist by ' + by + '.');
 			added.push(tarUser);
 		}
 
 		var text = '';
 		if (added.length) {
-			text += 'User(s) "' + added.join('", "') + '" added to blacklist successfully. ';
+			text += 'User' + (added.length > 1 ? 's "' + added.join('", "') + '" were' : ' "' + added[0] + '" was') + ' added to the blacklist';
+			this.say(room, '/modnote ' + text + ' by ' + by + '.');
+			text += '.';
 			this.writeSettings();
 		}
 		if (alreadyAdded.length) text += 'User(s) "' + alreadyAdded.join('", "') + '" already present in blacklist. ';
@@ -300,10 +301,12 @@ exports.commands = {
 
 		var text = '';
 		if (removed.length) {
-			text += 'User(s) "' + removed.join('", "') + '" removed from blacklist successfully. ';
+			text += 'User' + (removed.length > 1 ? 's "' + removed.join('", "') + '" were' : ' "' + removed[0] + '" was') + ' removed from the blacklist';
+			this.say(room, '/modnote ' + text + ' by ' + by + '.');
+			text += '.';
 			this.writeSettings();
 		}
-		if (notRemoved.length) text += (text.length ? 'No other ' : 'No ') + 'specified users were present in the blacklist.';
+		if (notRemoved.length) text += (text.length ? ' No other ' : 'No ') + 'specified users were present in the blacklist.';
 		this.say(room, text);
 	},
 	rab: 'regexautoban',
