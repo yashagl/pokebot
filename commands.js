@@ -124,22 +124,22 @@ exports.commands = {
 
 	settings: 'set',
 	set: function (arg, by, room) {
-		if (!this.hasRank(by, '%@#&~') || room.charAt(0) === ',') return false;
+		if (!this.hasRank(by, '#&~') || room.charAt(0) === ',') return false;
 
 		var settable = {
+			autoban: 1,
+			banword: 1,
 			say: 1,
 			joke: 1,
 			usagestats: 1,
-			buzz: 1,
 			'8ball': 1,
-			survivor: 1,
-			wifi: 1,
-			monotype: 1,
-			autoban: 1,
-			happy: 1,
 			guia: 1,
 			studio: 1,
-			banword: 1
+			wifi: 1,
+			monotype: 1,
+			survivor: 1,
+			happy: 1,
+			buzz: 1
 		};
 		var modOpts = {
 			flooding: 1,
@@ -150,92 +150,86 @@ exports.commands = {
 
 		var opts = arg.split(',');
 		var cmd = toId(opts[0]);
-		if (cmd === 'mod' || cmd === 'm' || cmd === 'modding') {
-			if (!opts[1] || !toId(opts[1]) || !(toId(opts[1]) in modOpts)) return this.say(room, 'Incorrect command: correct syntax is ' + config.commandcharacter + 'set mod, [' +
+		var setting;
+		if (cmd === 'm' || cmd === 'mod' || cmd === 'modding') {
+			var modOpt = toId(opts[1]);
+			if (!modOpts[modOpt]) return this.say(room, 'Incorrect command: correct syntax is ' + config.commandcharacter + 'set mod, [' +
 				Object.keys(modOpts).join('/') + '](, [on/off])');
 
-			if (!this.settings['modding']) this.settings['modding'] = {};
-			if (!this.settings['modding'][room]) this.settings['modding'][room] = {};
-			if (opts[2] && toId(opts[2])) {
-				if (!this.hasRank(by, '#&~')) return false;
-				if (!(toId(opts[2]) in {on: 1, off: 1}))  return this.say(room, 'Incorrect command: correct syntax is ' + config.commandcharacter + 'set mod, [' +
-					Object.keys(modOpts).join('/') + '](, [on/off])');
-				if (toId(opts[2]) === 'off') {
-					this.settings['modding'][room][toId(opts[1])] = 0;
-				} else {
-					delete this.settings['modding'][room][toId(opts[1])];
-				}
-				this.writeSettings();
-				this.say(room, 'Moderation for ' + toId(opts[1]) + ' in this room is now ' + toId(opts[2]).toUpperCase() + '.');
-				return;
+			setting = toId(opts[2]);
+			if (!setting) return this.say(room, 'Moderation for ' + modOpt + ' in this room is currently ' +
+				(this.settings.modding[room] && modOpt in this.settings.modding[room] ? 'OFF' : 'ON') + '.');
+
+			if (!this.settings.modding) this.settings.modding = {};
+			if (!this.settings.modding[room]) this.settings.modding[room] = {};
+			if (setting === 'on') {
+				delete this.settings.modding[room][modOpt];
+				if (Object.isEmpty(this.settings.modding[room])) delete this.settings.modding[room];
+				if (Object.isEmpty(this.settings.modding)) delete this.settings.modding;
+			} else if (setting === 'off') {
+				this.settings.modding[room][modOpt] = 0;
 			} else {
-				this.say(room, 'Moderation for ' + toId(opts[1]) + ' in this room is currently ' +
-					(this.settings['modding'][room][toId(opts[1])] === 0 ? 'OFF' : 'ON') + '.');
-				return;
-			}
-		} else {
-			if (!Commands[cmd]) return this.say(room, config.commandcharacter + '' + opts[0] + ' is not a valid command.');
-			var failsafe = 0;
-			while (!(cmd in settable)) {
-				if (typeof Commands[cmd] === 'string') {
-					cmd = Commands[cmd];
-				} else if (typeof Commands[cmd] === 'function') {
-					if (cmd in settable) {
-						break;
-					} else {
-						this.say(room, 'The settings for ' + config.commandcharacter + '' + opts[0] + ' cannot be changed.');
-						return;
-					}
-				} else {
-					this.say(room, 'Something went wrong. PM TalkTakesTime here or on Smogon with the command you tried.');
-					return;
-				}
-				failsafe++;
-				if (failsafe > 5) {
-					this.say(room, 'The command "' + config.commandcharacter + '' + opts[0] + '" could not be found.');
-					return;
-				}
+				return this.say(room, 'Incorrect command: correct syntax is ' + config.commandcharacter + 'set mod, [' +
+					Object.keys(modOpts).join('/') + '](, [on/off])');
 			}
 
-			var settingsLevels = {
-				off: false,
-				disable: false,
-				'false': false,
-				'+': '+',
-				'%': '%',
-				'@': '@',
-				'#': '#',
-				'&': '&',
-				'~': '~',
-				on: true,
-				enable: true,
-				'true': true
-			};
-			if (!opts[1] || !opts[1].trim()) {
-				var msg = '';
-				if (!this.settings[cmd] || (!this.settings[cmd][room] && this.settings[cmd][room] !== false)) {
-					msg = '' + config.commandcharacter + '' + cmd + ' is available for users of rank ' + ((cmd === 'autoban' || cmd === 'banword') ? '#' : config.defaultrank) + ' and above.';
-				} else if (this.settings[cmd][room] in settingsLevels) {
-					msg = '' + config.commandcharacter + '' + cmd + ' is available for users of rank ' + this.settings[cmd][room] + ' and above.';
-				} else if (this.settings[cmd][room] === true) {
-					msg = '' + config.commandcharacter + '' + cmd + ' is available for all users in this room.';
-				} else if (this.settings[cmd][room] === false) {
-					msg = '' + config.commandcharacter + '' + cmd + ' is not available for use in this room.';
-				}
-				this.say(room, msg);
-				return;
-			} else {
-				if (!this.hasRank(by, '#&~')) return false;
-				var newRank = opts[1].trim();
-				if (!(newRank in settingsLevels)) return this.say(room, 'Unknown option: "' + newRank + '". Valid settings are: off/disable/false, +, %, @, &, #, ~, on/enable/true.');
-				if (!this.settings[cmd]) this.settings[cmd] = {};
-				this.settings[cmd][room] = settingsLevels[newRank];
-				this.writeSettings();
-				this.say(room, 'The command ' + config.commandcharacter + '' + cmd + ' is now ' +
-					(settingsLevels[newRank] === newRank ? ' available for users of rank ' + newRank + ' and above.' :
-					(this.settings[cmd][room] ? 'available for all users in this room.' : 'unavailable for use in this room.')));
-			}
+			this.writeSettings();
+			return this.say(room, 'Moderation for ' + modOpt + ' in this room is now ' + setting.toUpperCase() + '.');
 		}
+
+		if (!(cmd in Commands)) return this.say(room, config.commandcharacter + '' + opts[0] + ' is not a valid command.');
+
+		var failsafe = 0;
+		while (true) {
+			if (typeof Commands[cmd] === 'string') {
+				cmd = Commands[cmd];
+			} else if (typeof Commands[cmd] === 'function') {
+				if (cmd in settable) break;
+				return this.say(room, 'The settings for ' + config.commandcharacter + '' + opts[0] + ' cannot be changed.');
+			} else {
+				return this.say(room, 'Something went wrong. PM Morfent or TalkTakesTime here or on Smogon with the command you tried.');
+			}
+
+			if (++failsafe > 5) return this.say(room, 'The command "' + config.commandcharacter + '' + opts[0] + '" could not be found.');
+		}
+
+		var settingsLevels = {
+			off: false,
+			disable: false,
+			'false': false,
+			'+': '+',
+			'%': '%',
+			'@': '@',
+			'#': '#',
+			'&': '&',
+			'~': '~',
+			on: true,
+			enable: true,
+			'true': true
+		};
+
+		setting = opts[1].trim().toLowerCase();
+		if (!setting) {
+			var msg = '' + config.commandcharacter + '' + cmd + ' is ';
+			if (!this.settings[cmd] || (!(room in this.settings[cmd]))) {
+				msg += 'available for users of rank ' + ((cmd === 'autoban' || cmd === 'banword') ? '#' : config.defaultrank) + ' and above.';
+			} else if (this.settings[cmd][room] in settingsLevels) {
+				msg += 'available for users of rank ' + this.settings[cmd][room] + ' and above.';
+			} else {
+				msg += this.settings[cmd][room] ? 'available for all users in this room.' : 'not available for use in this room.';
+			}
+
+			return this.say(room, msg);
+		}
+
+		if (!(setting in settingsLevels)) return this.say(room, 'Unknown option: "' + setting + '". Valid settings are: off/disable/false, +, %, @, #, &, ~, on/enable/true.');
+		if (!this.settings[cmd]) this.settings[cmd] = {};
+		this.settings[cmd][room] = settingsLevels[setting];
+
+		this.writeSettings();
+		this.say(room, 'The command ' + config.commandcharacter + '' + cmd + ' is now ' +
+			(settingsLevels[setting] === setting ? ' available for users of rank ' + setting + ' and above.' :
+			(this.settings[cmd][room] ? 'available for all users in this room.' : 'unavailable for use in this room.')));
 	},
 	blacklist: 'autoban',
 	ban: 'autoban',
@@ -270,8 +264,9 @@ exports.commands = {
 			text += '.';
 			this.writeSettings();
 		}
-		if (alreadyAdded.length) text += 'User(s) "' + alreadyAdded.join('", "') + '" already present in blacklist. ';
-		if (illegalNick.length) text += 'All ' + (text.length ? 'other ' : '') + 'users had illegal nicks and were not blacklisted.';
+		if (alreadyAdded.length) text += ' User' + (alreadyAdded.length ? 's "' + alreadyAdded.join('", "') + '" are' : ' "' + alreadyAdded[0] + '" is') +
+			' already present in the blacklist.';
+		if (illegalNick.length) text += (text.length ? ' All other' : 'All') + ' users had illegal nicks and were not blacklisted.';
 		this.say(room, text);
 	},
 	unblacklist: 'unautoban',
@@ -306,7 +301,7 @@ exports.commands = {
 			text += '.';
 			this.writeSettings();
 		}
-		if (notRemoved.length) text += (text.length ? ' No other ' : 'No ') + 'specified users were present in the blacklist.';
+		if (notRemoved.length) text += (text.length ? ' No other' : 'No') + ' specified users were present in the blacklist.';
 		this.say(room, text);
 	},
 	rab: 'regexautoban',
@@ -325,7 +320,8 @@ exports.commands = {
 		if (!this.blacklistUser(arg, room)) return this.say(room, '/' + arg + ' is already present in the blacklist.');
 
 		this.writeSettings();
-		this.say(room, '/' + arg + ' was added to the blacklist successfully.');
+		this.say(room, '/modnote Regular expression ' + arg + ' was added to the blacklist by ' + by + '.');
+		this.say(room, 'Regular expression ' + arg + ' was added to the blacklist.');
 	},
 	unrab: 'unregexautoban',
 	unregexautoban: function (arg, by, room) {
@@ -337,7 +333,8 @@ exports.commands = {
 		if (!this.unblacklistUser(arg, room)) return this.say(room,'/' + arg + ' is not present in the blacklist.');
 
 		this.writeSettings();
-		this.say(room, '/' + arg + ' was removed from the blacklist successfully.');
+		this.say(room, '/modnote Regular expression ' + arg + ' was removed from the blacklist by ' + by + '.');
+		this.say(room, 'Regular expression ' + arg + ' was removed from the blacklist.');
 	},
 	viewbans: 'viewblacklist',
 	vab: 'viewblacklist',
