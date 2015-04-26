@@ -8,6 +8,8 @@
  * @license MIT license
  */
 
+const MESSAGE_THROTTLE = 650;
+
 global.info = function (text) {
 	if (config.debuglevel > 3) return;
 	if (!colors) global.colors = require('colors');
@@ -163,8 +165,8 @@ global.send = function (data) {
 	
 	var now = Date.now();
 	var diff = now - lastSentAt;
-	if (diff < 650) {
-		if (!dequeueTimeout) dequeueTimeout = setTimeout(dequeue, 650 - diff);
+	if (diff < MESSAGE_THROTTLE) {
+		if (!dequeueTimeout) dequeueTimeout = setTimeout(dequeue, MESSAGE_THROTTLE - diff);
 		queue.push(data);
 		return false;
 	}
@@ -177,7 +179,7 @@ global.send = function (data) {
 	lastSentAt = now;
 	if (dequeueTimeout) {
 		if (queue.length) {
-			dequeueTimeout = setTimeout(dequeue, 650);
+			dequeueTimeout = setTimeout(dequeue, MESSAGE_THROTTLE);
 		} else {
 			dequeueTimeout = null;
 		}
