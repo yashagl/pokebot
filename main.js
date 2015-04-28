@@ -11,31 +11,31 @@
 const MESSAGE_THROTTLE = 650;
 
 global.info = function (text) {
-	if (config.debuglevel > 3) return;
+	if (Config.debuglevel > 3) return;
 	if (!colors) global.colors = require('colors');
 	console.log('info'.cyan + '  ' + text);
 };
 
 global.debug = function (text) {
-	if (config.debuglevel > 2) return;
+	if (Config.debuglevel > 2) return;
 	if (!colors) global.colors = require('colors');
 	console.log('debug'.blue + ' ' + text);
 };
 
 global.recv = function (text) {
-	if (config.debuglevel > 0) return;
+	if (Config.debuglevel > 0) return;
 	if (!colors) global.colors = require('colors');
 	console.log('recv'.grey + '  ' + text);
 };
 
 global.cmdr = function (text) { // receiving commands
-	if (config.debuglevel !== 1) return;
+	if (Config.debuglevel !== 1) return;
 	if (!colors) global.colors = require('colors');
 	console.log('cmdr'.grey + '  ' + text);
 };
 
 global.dsend = function (text) {
-	if (config.debuglevel > 1) return;
+	if (Config.debuglevel > 1) return;
 	if (!colors) global.colors = require('colors');
 	console.log('send'.grey + '  ' + text);
 };
@@ -46,7 +46,7 @@ global.error = function (text) {
 };
 
 global.ok = function (text) {
-	if (config.debuglevel > 4) return;
+	if (Config.debuglevel > 4) return;
 	if (!colors) global.colors = require('colors');
 	console.log('ok'.green + '    ' + text);
 };
@@ -117,10 +117,10 @@ if (!fs.existsSync('./config.js')) {
 	process.exit(-1);
 }
 
-global.config = require('./config.js');
+global.Config = require('./config.js');
 
 var checkCommandCharacter = function () {
-	if (!/[^a-z0-9 ]/i.test(config.commandcharacter)) {
+	if (!/[^a-z0-9 ]/i.test(Config.commandcharacter)) {
 		error('invalid command character; should at least contain one non-alphanumeric character');
 		process.exit(-1);
 	}
@@ -136,12 +136,12 @@ var watchFile = function () {
 	}
 };
 
-if (config.watchconfig) {
+if (Config.watchconfig) {
 	watchFile('./config.js', function (curr, prev) {
 		if (curr.mtime <= prev.mtime) return;
 		try {
 			delete require.cache[require.resolve('./config.js')];
-			config = require('./config.js');
+			Config = require('./config.js');
 			info('reloaded config.js');
 			checkCommandCharacter();
 		} catch (e) {}
@@ -198,7 +198,7 @@ var connect = function (retry) {
 	var ws = new WebSocketClient();
 
 	ws.on('connectFailed', function (err) {
-		error('Could not connect to server ' + config.server + ': ' + sys.inspect(err));
+		error('Could not connect to server ' + Config.server + ': ' + sys.inspect(err));
 		info('retrying in one minute');
 
 		setTimeout(function () {
@@ -208,7 +208,7 @@ var connect = function (retry) {
 
 	ws.on('connect', function (con) {
 		connection = con;
-		ok('connected to server ' + config.server);
+		ok('connected to server ' + Config.server);
 
 		con.on('error', function (err) {
 			error('connection error: ' + sys.inspect(err));
@@ -240,9 +240,9 @@ var connect = function (retry) {
 		str += chars.charAt(~~(Math.random() * l));
 	}
 
-	var conStr = 'ws://' + config.server + ':' + config.port + '/showdown/' + id + '/' + str + '/websocket';
-	info('connecting to ' + conStr + ' - secondary protocols: ' + sys.inspect(config.secprotocols));
-	ws.connect(conStr, config.secprotocols);
+	var conStr = 'ws://' + Config.server + ':' + Config.port + '/showdown/' + id + '/' + str + '/websocket';
+	info('connecting to ' + conStr + ' - secondary protocols: ' + sys.inspect(Config.secprotocols));
+	ws.connect(conStr, Config.secprotocols);
 };
 
 connect();

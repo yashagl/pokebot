@@ -26,7 +26,7 @@ try {
 if (!Object.isObject(settings)) settings = {};
 
 exports.parse = {
-	actionUrl: url.parse('https://play.pokemonshowdown.com/~~' + config.serverid + '/action.php'),
+	actionUrl: url.parse('https://play.pokemonshowdown.com/~~' + Config.serverid + '/action.php'),
 	room: 'lobby',
 	'settings': settings,
 	chatData: {},
@@ -57,7 +57,7 @@ exports.parse = {
 			room = spl.shift().substr(1);
 			if (spl[0].substr(1, 4) === 'init') {
 				var users = spl[2].substr(7).split(',');
-				var nickId = toId(config.nick);
+				var nickId = toId(Config.nick);
 				for (var i = users.length; i--;) {
 					if (toId(users[i]) === nickId) this.ranks[room] = users[i].trim().charAt(0);
 					break;
@@ -85,12 +85,12 @@ exports.parse = {
 					agent: false
 				};
 
-				if (!config.pass) {
+				if (!Config.pass) {
 					requestOptions.method = 'GET';
-					requestOptions.path += '?act=getassertion&userid=' + toId(config.nick) + '&challengekeyid=' + id + '&challenge=' + str;
+					requestOptions.path += '?act=getassertion&userid=' + toId(Config.nick) + '&challengekeyid=' + id + '&challenge=' + str;
 				} else {
 					requestOptions.method = 'POST';
-					var data = 'act=login&name=' + config.nick + '&pass=' + config.pass + '&challengekeyid=' + id + '&challenge=' + str;
+					var data = 'act=login&name=' + Config.nick + '&pass=' + Config.pass + '&challengekeyid=' + id + '&challenge=' + str;
 					requestOptions.headers = {
 						'Content-Type': 'application/x-www-form-urlencoded',
 						'Content-Length': data.length
@@ -138,7 +138,7 @@ exports.parse = {
 								process.exit(-1);
 							}
 						} catch (e) {}
-						send('|/trn ' + config.nick + ',0,' + data);
+						send('|/trn ' + Config.nick + ',0,' + data);
 					}.bind(this));
 				}.bind(this));
 
@@ -150,7 +150,7 @@ exports.parse = {
 				req.end();
 				break;
 			case 'updateuser':
-				if (spl[2] !== config.nick) return;
+				if (spl[2] !== Config.nick) return;
 
 				if (spl[3] !== '1') {
 					error('failed to log in, still guest');
@@ -161,14 +161,14 @@ exports.parse = {
 				send('|/blockchallenges');
 
 				// Now join the rooms
-				for (var i = 0, len = config.rooms.length; i < len; i++) {
-					var room = toId(config.rooms[i]);
-					if (room === 'lobby' && config.serverid === 'showdown') continue;
+				for (var i = 0, len = Config.rooms.length; i < len; i++) {
+					var room = toId(Config.rooms[i]);
+					if (room === 'lobby' && Config.serverid === 'showdown') continue;
 					send('|/join ' + room);
 				}
-				for (var i = 0, len = config.privaterooms.length; i < len; i++) {
-					var room = toId(config.privaterooms[i]);
-					if (room === 'lobby' && config.serverid === 'showdown') continue;
+				for (var i = 0, len = Config.privaterooms.length; i < len; i++) {
+					var room = toId(Config.privaterooms[i]);
+					if (room === 'lobby' && Config.serverid === 'showdown') continue;
 					send('|/join ' + room);
 				}
 				if (this.settings.blacklist) {
@@ -218,12 +218,12 @@ exports.parse = {
 		var cmdrMessage = '["' + room + '|' + by + '|' + message + '"]';
 		message = message.trim();
 		// auto accept invitations to rooms
-		if (room.charAt(0) === ',' && message.substr(0,8) === '/invite ' && this.hasRank(by, '%@&~') && !(config.serverid === 'showdown' && toId(message.substr(8)) === 'lobby')) {
+		if (room.charAt(0) === ',' && message.substr(0,8) === '/invite ' && this.hasRank(by, '%@&~') && !(Config.serverid === 'showdown' && toId(message.substr(8)) === 'lobby')) {
 			this.say('', '/join ' + message.substr(8));
 		}
-		if (message.substr(0, config.commandcharacter.length) !== config.commandcharacter || toId(by) === toId(config.nick)) return;
+		if (message.substr(0, Config.commandcharacter.length) !== Config.commandcharacter || toId(by) === toId(Config.nick)) return;
 
-		message = message.substr(config.commandcharacter.length);
+		message = message.substr(Config.commandcharacter.length);
 		var index = message.indexOf(' ');
 		var arg = '';
 		if (index > -1) {
@@ -256,13 +256,13 @@ exports.parse = {
 		send(str);
 	},
 	hasRank: function (user, ranks) {
-		return ranks.indexOf(user.charAt(0)) > -1 || config.excepts.indexOf(toId(user)) > -1;
+		return ranks.indexOf(user.charAt(0)) > -1 || Config.excepts.indexOf(toId(user)) > -1;
 	},
 	canUse: function (cmd, room, user) {
 		var canUse = false;
 		var ranks = ' +%@#&~';
 		if (!this.settings[cmd] || !this.settings[cmd][room]) {
-			canUse = this.hasRank(user, ranks.substr(ranks.indexOf((cmd === 'autoban' || cmd === 'banword') ? '#' : config.defaultrank)));
+			canUse = this.hasRank(user, ranks.substr(ranks.indexOf((cmd === 'autoban' || cmd === 'banword') ? '#' : Config.defaultrank)));
 		} else if (this.settings[cmd][room] === true) {
 			canUse = true;
 		} else if (ranks.indexOf(this.settings[cmd][room]) > -1) {
@@ -351,7 +351,7 @@ exports.parse = {
 		roomData.times.push(now);
 
 		// this deals with punishing rulebreakers, but note that the bot can't think, so it might make mistakes
-		if (config.allowmute && this.hasRank(this.ranks[room] || ' ', '%@#&~') && config.whitelist.indexOf(user) === -1) {
+		if (Config.allowmute && this.hasRank(this.ranks[room] || ' ', '%@#&~') && Config.whitelist.indexOf(user) === -1) {
 			var useDefault = !(this.settings.modding && this.settings.modding[room]);
 			var pointVal = 0;
 			var muteMessage = '';
@@ -399,16 +399,16 @@ exports.parse = {
 
 			if (pointVal > 0 && now - roomData.lastAction >= ACTION_COOLDOWN) {
 				var cmd = 'mute';
-				// defaults to the next punishment in config.punishVals instead of repeating the same action (so a second warn-worthy
+				// defaults to the next punishment in Config.punishVals instead of repeating the same action (so a second warn-worthy
 				// offence would result in a mute instead of a warn, and the third an hourmute, etc)
 				if (roomData.points >= pointVal && pointVal < 4) {
 					roomData.points++;
-					cmd = config.punishvals[roomData.points] || cmd;
+					cmd = Config.punishvals[roomData.points] || cmd;
 				} else { // if the action hasn't been done before (is worth more points) it will be the one picked
-					cmd = config.punishvals[pointVal] || cmd;
+					cmd = Config.punishvals[pointVal] || cmd;
 					roomData.points = pointVal; // next action will be one level higher than this one (in most cases)
 				}
-				if (config.privaterooms.indexOf(room) > -1 && cmd === 'warn') cmd = 'mute'; // can't warn in private rooms
+				if (Config.privaterooms.indexOf(room) > -1 && cmd === 'warn') cmd = 'mute'; // can't warn in private rooms
 				// if the bot has % and not @, it will default to hourmuting as its highest level of punishment instead of roombanning
 				if (roomData.points >= 4 && !this.hasRank(this.ranks[room] || ' ', '@#&~')) cmd = 'hourmute';
 				if (userData.zeroTol > 4) { // if zero tolerance users break a rule they get an instant roomban or hourmute
@@ -448,7 +448,7 @@ exports.parse = {
 	},
 
 	updateSeen: function (user, type, detail) {
-		if (type !== 'n' && config.rooms.indexOf(detail) === -1 || config.privaterooms.indexOf(toId(detail)) > -1) return;
+		if (type !== 'n' && Config.rooms.indexOf(detail) === -1 || Config.privaterooms.indexOf(toId(detail)) > -1) return;
 		var now = Date.now();
 		if (!this.chatData[user]) this.chatData[user] = {
 			zeroTol: 0,
@@ -551,7 +551,7 @@ exports.parse = {
 		} while (uncache.length > 0);
 	},
 	getDocMeta: function (id, callback) {
-		https.get('https://www.googleapis.com/drive/v2/files/' + id + '?key=' + config.googleapikey, function (res) {
+		https.get('https://www.googleapis.com/drive/v2/files/' + id + '?key=' + Config.googleapikey, function (res) {
 			var data = '';
 			res.on('data', function (part) {
 				data += part;
