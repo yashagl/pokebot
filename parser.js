@@ -8,6 +8,7 @@
  * @license MIT license
  */
 
+var fs = require('fs');
 var sys = require('sys');
 var https = require('https');
 var url = require('url');

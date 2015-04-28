@@ -92,12 +92,8 @@ try {
 	return runNpm('install');
 }
 
-if (!Object.select) {
-	console.log('Node needs to be updated!');
-	return runNpm('update');
-}
-
 // First dependencies and welcome message
+var fs = require('fs');
 var sys = require('sys');
 global.colors = require('colors');
 
@@ -107,7 +103,6 @@ console.log('------------------------------------'.yellow);
 console.log('');
 
 // Config and config.js watching...
-global.fs = require('fs');
 try {
 	global.Config = require('./config.js');
 } catch (e) {
@@ -124,16 +119,8 @@ var checkCommandCharacter = function () {
 
 checkCommandCharacter();
 
-var watchFile = function () {
-	try {
-		return fs.watchFile.apply(fs, arguments);
-	} catch (e) {
-		error('your version of node does not support `fs.watchFile`');
-	}
-};
-
 if (Config.watchconfig) {
-	watchFile('./config.js', function (curr, prev) {
+	fs.watchFile('./config.js', function (curr, prev) {
 		if (curr.mtime <= prev.mtime) return;
 		try {
 			delete require.cache[require.resolve('./config.js')];
