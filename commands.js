@@ -5,7 +5,6 @@
  */
 
 var http = require('http');
-var sys = require('sys');
 
 if (Config.serverid === 'showdown') {
 	var https = require('https');
@@ -56,7 +55,7 @@ exports.commands = {
 			Commands = require('./commands.js').commands;
 			this.say(room, 'Commands reloaded.');
 		} catch (e) {
-			error('failed to reload: ' + sys.inspect(e));
+			error('failed to reload: ' + e.stack);
 		}
 	},
 	custom: function (arg, by, room) {

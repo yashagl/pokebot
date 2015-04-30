@@ -94,7 +94,6 @@ try {
 
 // First dependencies and welcome message
 var fs = require('fs');
-var sys = require('sys');
 global.colors = require('colors');
 
 console.log('------------------------------------'.yellow);
@@ -181,7 +180,7 @@ var connect = function (retry) {
 	var ws = new WebSocketClient();
 
 	ws.on('connectFailed', function (err) {
-		error('Could not connect to server ' + Config.server + ': ' + sys.inspect(err));
+		error('Could not connect to server ' + Config.server + ': ' + err.stack);
 		info('retrying in one minute');
 
 		setTimeout(function () {
@@ -194,12 +193,12 @@ var connect = function (retry) {
 		ok('connected to server ' + Config.server);
 
 		con.on('error', function (err) {
-			error('connection error: ' + sys.inspect(err));
+			error('connection error: ' + err.stack);
 		});
 
-		con.on('close', function () {
+		con.on('close', function (code, reason) {
 			// Is this always error or can this be intended...?
-			error('connection closed: ' + sys.inspect(arguments));
+			error('connection closed: ' + reason + ' (' + code + ')');
 			info('retrying in one minute');
 
 			setTimeout(function () {
@@ -209,7 +208,7 @@ var connect = function (retry) {
 
 		con.on('message', function (message) {
 			if (message.type === 'utf8') {
-				recv(sys.inspect(message.utf8Data));
+				recv(message.utf8Data);
 				Parse.data(message.utf8Data);
 			}
 		});
@@ -224,7 +223,7 @@ var connect = function (retry) {
 	}
 
 	var conStr = 'ws://' + Config.server + ':' + Config.port + '/showdown/' + id + '/' + str + '/websocket';
-	info('connecting to ' + conStr + ' - secondary protocols: ' + sys.inspect(Config.secprotocols));
+	info('connecting to ' + conStr + ' - secondary protocols: ' + (Config.secprotocols.join(', ') || 'none'));
 	ws.connect(conStr, Config.secprotocols);
 };
 

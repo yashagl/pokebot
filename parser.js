@@ -9,7 +9,6 @@
  */
 
 var fs = require('fs');
-var sys = require('sys');
 var https = require('https');
 var url = require('url');
 
@@ -144,7 +143,7 @@ exports.parse = {
 				}.bind(this));
 
 				req.on('error', function (err) {
-					error('login error: ' + sys.inspect(err));
+					error('login error: ' + err.stack);
 				});
 
 				if (data) req.write(data);
