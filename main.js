@@ -10,58 +10,6 @@
 
 const MESSAGE_THROTTLE = 650;
 
-global.info = function (text) {
-	if (Config.debuglevel > 3) return;
-	if (!colors) global.colors = require('colors');
-	console.log('info'.cyan + '  ' + text);
-};
-
-global.debug = function (text) {
-	if (Config.debuglevel > 2) return;
-	if (!colors) global.colors = require('colors');
-	console.log('debug'.blue + ' ' + text);
-};
-
-global.recv = function (text) {
-	if (Config.debuglevel > 0) return;
-	if (!colors) global.colors = require('colors');
-	console.log('recv'.grey + '  ' + text);
-};
-
-global.cmdr = function (text) { // receiving commands
-	if (Config.debuglevel !== 1) return;
-	if (!colors) global.colors = require('colors');
-	console.log('cmdr'.grey + '  ' + text);
-};
-
-global.dsend = function (text) {
-	if (Config.debuglevel > 1) return;
-	if (!colors) global.colors = require('colors');
-	console.log('send'.grey + '  ' + text);
-};
-
-global.error = function (text) {
-	if (!colors) global.colors = require('colors');
-	console.log('error'.red + ' ' + text);
-};
-
-global.ok = function (text) {
-	if (Config.debuglevel > 4) return;
-	if (!colors) global.colors = require('colors');
-	console.log('ok'.green + '    ' + text);
-};
-
-global.toId = function (text) {
-	return text.toLowerCase().replace(/[^a-z0-9]/g, '');
-};
-
-global.stripCommands = function (text) {
-	text = text.trim();
-	if (text.charAt(0) === '/') return '/' + text;
-	if (text.charAt(0) === '!' || /^>>>? /.test(text)) return ' ' + text;
-	return text;
-};
-
 function runNpm(command) {
 	console.log('Running `npm ' + command + '`...');
 
@@ -83,23 +31,64 @@ function runNpm(command) {
 	});
 }
 
-// Check if everything that is needed is available
+// First dependencies and welcome message
 try {
 	require('sugar');
-	require('colors');
+	global.colors = require('colors');
 } catch (e) {
 	console.log('Dependencies are not installed!');
 	return runNpm('install');
 }
 
-// First dependencies and welcome message
-var fs = require('fs');
-global.colors = require('colors');
+global.info = function (text) {
+	if (Config.debuglevel > 3) return;
+	console.log('info'.cyan + '  ' + text);
+};
+
+global.debug = function (text) {
+	if (Config.debuglevel > 2) return;
+	console.log('debug'.blue + ' ' + text);
+};
+
+global.recv = function (text) {
+	if (Config.debuglevel > 0) return;
+	console.log('recv'.grey + '  ' + text);
+};
+
+global.cmdr = function (text) { // receiving commands
+	if (Config.debuglevel !== 1) return;
+	console.log('cmdr'.grey + '  ' + text);
+};
+
+global.dsend = function (text) {
+	if (Config.debuglevel > 1) return;
+	console.log('send'.grey + '  ' + text);
+};
+
+global.error = function (text) {
+	console.log('error'.red + ' ' + text);
+};
+
+global.ok = function (text) {
+	if (Config.debuglevel > 4) return;
+	console.log('ok'.green + '    ' + text);
+};
 
 console.log('------------------------------------'.yellow);
 console.log('| Welcome to Pokemon Showdown Bot! |'.yellow);
 console.log('------------------------------------'.yellow);
 console.log('');
+
+global.toId = function (text) {
+	return text.toLowerCase().replace(/[^a-z0-9]/g, '');
+};
+
+global.stripCommands = function (text) {
+	text = text.trim();
+	if (text.charAt(0) === '/') return '/' + text;
+	if (text.charAt(0) === '!' || /^>>>? /.test(text)) return ' ' + text;
+	return text;
+};
 
 // Config and config.js watching...
 try {
@@ -118,6 +107,7 @@ var checkCommandCharacter = function () {
 
 checkCommandCharacter();
 
+var fs = require('fs');
 if (Config.watchconfig) {
 	fs.watchFile('./config.js', function (curr, prev) {
 		if (curr.mtime <= prev.mtime) return;
@@ -146,9 +136,10 @@ global.send = function (data) {
 	if (!connection.connected) return false;
 	
 	var now = Date.now();
-	var diff = now - lastSentAt;
-	if (diff < MESSAGE_THROTTLE) {
-		if (!dequeueTimeout) dequeueTimeout = setTimeout(dequeue, MESSAGE_THROTTLE - diff);
+	if (now < lastSentAt + MESSAGE_THROTTLE - 5) {
+		if (!dequeueTimeout) {
+			dequeueTimeout = setTimeout(dequeue, now - lastSentAt + MESSAGE_THROTTLE);
+		}
 		queue.push(data);
 		return false;
 	}
