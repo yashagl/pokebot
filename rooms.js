@@ -1,3 +1,11 @@
+/**
+ * This is where joined rooms are stored.
+ * 
+ * On startup, the Pokemon Showdown Bot joins the configured rooms here,
+ * and tracks their userlists. Room command and modding settings are
+ * loaded on room join, if present.
+ */
+
 var Rooms = Object.create(null);
 var rooms = Rooms.rooms = new Map();
 var getRoom = Rooms.get = function (name) {
@@ -60,8 +68,6 @@ class Room {
 			user = Users.get(username); 
 		} else if (username.substr(1) !== user.name) { // changing nick
 			user = user.rename(username);
-			user.name = username.substr(1);
-			user.id = toId(username);
 		}
 		this.users.set(user.id, group);
 		user.rooms.set(this.id, group);

@@ -1,3 +1,11 @@
+/**
+ * This is where users are stored.
+ *
+ * New users are processed when joining new rooms and on receiving join
+ * messages from the server. User chat data is processed here for use
+ * in command permissions and automatic moderation.
+ */
+
 var Users = Object.create(null);
 var users = Users.users = Object.create(null);
 var getUser = Users.get = function (username) {
@@ -41,7 +49,7 @@ class User {
 
 		var setting = settings[roomid];
 		if (setting === true) return true;
-		return this.hasrank(room, setting);
+		return this.hasRank(room, setting);
 	}
 
 	rename(username) {

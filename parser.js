@@ -20,7 +20,7 @@ const MIN_CAPS_LENGTH = 12;
 const MIN_CAPS_PROPORTION = 0.8;
 
 // TODO: move to rooms.js
-// TODO: store settings by room, not command/blacmove to rooms.jsklist/banned phrases
+// TODO: store settings by room, not command/blacklists
 var settings;
 try {
 	settings = JSON.parse(fs.readFileSync('settings.json'));
