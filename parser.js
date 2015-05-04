@@ -268,21 +268,6 @@ exports.parse = {
 			send('|/pm ' + targetId + ', ' + text);
 		}
 	},
-	canUse: function (cmd, room, user) {
-		if (room === user) return true;
-		var canUse = false;
-		var cmdSetting = this.settings[cmd];
-		var roomid = room.id;
-		if (!cmdSetting || !cmdSetting[roomid]) {
-			canUse = user.hasRank(room, (cmd === 'autoban' || cmd === 'banword') ? '#' : Config.defaultrank);
-		} else if (cmdSetting[roomid] === true) {
-			canUse = true;
-		} else {
-			canUse = user.hasRank(room, cmdSetting[roomid]);
-		}
-		return canUse;
-	},
-	// TODO: move blacklist methods to rooms.js
 	isBlacklisted: function (userid, roomid) {
 		var blacklistRegex = this.blacklistRegexes[roomid];
 		return blacklistRegex && blacklistRegex.test(userid);
