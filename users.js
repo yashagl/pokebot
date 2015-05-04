@@ -31,6 +31,19 @@ class User {
 		return Config.groups.indexOf(group) >= Config.groups.indexOf(tarGroup);
 	}
 
+	canUse(cmd, room) {
+		if (room === this) return true;
+		var settings = Parse.settings[cmd];
+		var roomid = room.id;
+		if (!settings || !settings[roomid]) {
+			return this.hasRank(room, (cmd === 'autoban' || cmd === 'blacklist') ? '#' : Config.defaultrank);
+		}
+
+		var setting = settings[roomid];
+		if (setting === true) return true;
+		return this.hasrank(room, setting);
+	}
+
 	rename(username) {
 		var oldid = this.id;
 		delete users[oldid];

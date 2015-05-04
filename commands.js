@@ -239,15 +239,14 @@ exports.commands = {
 	ban: 'autoban',
 	ab: 'autoban',
 	autoban: function (arg, user, room) {
-		if (!this.canUse('autoban', room, user) || room === user) return false;
+		if (!user.canUse('autoban', room) || room === user) return false;
 		if (!Users.self.hasRank(room, '@')) return this.say(room, Users.self.name + ' requires rank of @ or higher to (un)blacklist.');
+		if (!toId(arg)) return this.say(room, 'You must specify at least one user to blacklist.');
 
 		arg = arg.split(',');
 		var added = [];
 		var illegalNick = [];
 		var alreadyAdded = [];
-		if (!arg.length || (arg.length === 1 && !arg[0].trim().length)) return this.say(room, 'You must specify at least one user to blacklist.');
-
 		var roomid = room.id;
 		for (let i = 0; i < arg.length; i++) {
 			let tarUser = toId(arg[i]);
@@ -279,14 +278,13 @@ exports.commands = {
 	unban: 'unautoban',
 	unab: 'unautoban',
 	unautoban: function (arg, user, room) {
-		if (!this.canUse('autoban', room, user) || room === user) return false;
+		if (!user.canUse('autoban', room) || room === user) return false;
 		if (!Users.self.hasRank(room, '@')) return this.say(room, Users.self.name + ' requires rank of @ or higher to (un)blacklist.');
+		if (!toId(arg)) return this.say(room, 'You must specify at least one user to unblacklist.');
 
 		arg = arg.split(',');
 		var removed = [];
 		var notRemoved = [];
-		if (!arg.length || (arg.length === 1 && !arg[0].trim().length)) return this.say(room, 'You must specify at least one user to unblacklist.');
-		
 		var roomid = room.id;
 		for (let i = 0; i < arg.length; i++) {
 			let tarUser = toId(arg[i]);
@@ -314,7 +312,7 @@ exports.commands = {
 	},
 	rab: 'regexautoban',
 	regexautoban: function (arg, user, room) {
-		if (!user.isRegexWhitelisted || !this.canUse('autoban', room, user) || room === user) return false;
+		if (!user.isRegexWhitelisted || !user.canUse('autoban', room) || room === user) return false;
 		if (!Users.self.hasRank(room, '@')) return this.say(room, Users.self.name + ' requires rank of @ or higher to (un)blacklist.');
 		if (!arg) return this.say(room, 'You must specify a regular expression to (un)blacklist.');
 
@@ -333,12 +331,12 @@ exports.commands = {
 	},
 	unrab: 'unregexautoban',
 	unregexautoban: function (arg, user, room) {
-		if (!user.isRegexWhitelisted || !this.canUse('autoban', room, user) || room === user) return false;
+		if (!user.isRegexWhitelisted || !user.canUse('autoban', room) || room === user) return false;
 		if (!Users.self.hasRank(room, '@')) return this.say(room, Users.self.name + ' requires rank of @ or higher to (un)blacklist.');
 		if (!arg) return this.say(room, 'You must specify a regular expression to (un)blacklist.');
 
 		arg = '/' + arg.replace(/\\\\/g, '\\') + '/i';
-		if (!this.unblacklistUser(arg, room)) return this.say(room,'/' + arg + ' is not present in the blacklist.');
+		if (!this.unblacklistUser(arg, room.id)) return this.say(room,'/' + arg + ' is not present in the blacklist.');
 
 		this.writeSettings();
 		this.say(room, '/modnote Regular expression ' + arg + ' was removed from the blacklist user by ' + user.name + '.');
@@ -348,7 +346,7 @@ exports.commands = {
 	vab: 'viewblacklist',
 	viewautobans: 'viewblacklist',
 	viewblacklist: function (arg, user, room) {
-		if (!this.canUse('autoban', room, user) || room === user) return false;
+		if (!user.canUse('autoban', room) || room === user) return false;
 
 		var text = '';
 		var roomid = room.id;
@@ -365,17 +363,16 @@ exports.commands = {
 			} else {
 				let nickList = Object.keys(this.settings.blacklist[roomid]);
 				if (!nickList.length) return this.say(room, '/pm ' + user.id + ', No users are blacklisted in this room.');
-				this.uploadToHastebin('The following users are banned in ' + roomid + ':\n\n' + nickList.join('\n'), function (link) {
+				return this.uploadToHastebin('The following users are banned in ' + roomid + ':\n\n' + nickList.join('\n'), function (link) {
 					this.say(room, "/pm " + user.id + ", Blacklist for room " + roomid + ": " + link);
 				}.bind(this));
-				return;
 			}
 		}
 		this.say(room, '/pm ' + user.id + ', ' + text);
 	},
 	banphrase: 'banword',
 	banword: function (arg, user, room) {
-		if (!this.canUse('banword', room, user)) return false;
+		if (!user.canUse('banword', room)) return false;
 		if (!this.settings.bannedphrases) this.settings.bannedphrases = {};
 		arg = arg.trim().toLowerCase();
 		if (!arg) return false;
@@ -394,7 +391,7 @@ exports.commands = {
 	},
 	unbanphrase: 'unbanword',
 	unbanword: function (arg, user, room) {
-		if (!this.canUse('banword', room, user)) return false;
+		if (!user.canUse('banword', room)) return false;
 		arg = arg.trim().toLowerCase();
 		if (!arg) return false;
 		var tarRoom = room.id;
@@ -415,7 +412,7 @@ exports.commands = {
 	viewbannedphrases: 'viewbannedwords',
 	vbw: 'viewbannedwords',
 	viewbannedwords: function (arg, user, room) {
-		if (!this.canUse('banword', room, user)) return false;
+		if (!user.canUse('banword', room)) return false;
 		arg = arg.trim().toLowerCase();
 		var tarRoom = room.id;
 
@@ -434,10 +431,9 @@ exports.commands = {
 			} else {
 				let banList = Object.keys(this.settings.bannedphrases[tarRoom]);
 				if (!banList.length) return this.say(room, "No phrases are banned in this room.");
-				this.uploadToHastebin("The following phrases are banned " + (room === user ? "globally" : "in " + room.id) + ":\n\n" + banList.join('\n'), function (link) {
+				return this.uploadToHastebin("The following phrases are banned " + (room === user ? "globally" : "in " + room.id) + ":\n\n" + banList.join('\n'), function (link) {
 					this.say(room, (room === user ? "" : "/pm " + user.id + ", ") + "Banned Phrases " + (room === user ? "globally" : "in " + room.id) + ": " + link);
 				}.bind(this));
-				return;
 			}
 		}
 		this.say(room, text);
@@ -451,11 +447,11 @@ exports.commands = {
 
 	tell: 'say',
 	say: function (arg, user, room) {
-		if (!this.canUse('say', room, user)) return false;
+		if (!user.canUse('say', room)) return false;
 		this.say(room, stripCommands(arg) + ' (' + user.name + ' said this)');
 	},
 	joke: function (arg, user, room) {
-		if (!this.canUse('joke', room, user) || room === user) return false;
+		if (!user.canUse('joke', room) || room === user) return false;
 		var self = this;
 
 		var reqOpt = {
@@ -477,7 +473,7 @@ exports.commands = {
 	},
 	usage: 'usagestats',
 	usagestats: function (arg, user, room) {
-		var text = this.canUse('usagestats', room, user) || room === user ? '' : '/pm ' + user.id + ', ';
+		var text = user.canUse('usagestats', room) || room === user ? '' : '/pm ' + user.id + ', ';
 		text += 'http://www.smogon.com/stats/2015-03/';
 		this.say(room, text);
 	},
@@ -498,7 +494,7 @@ exports.commands = {
 		this.say(room, text);
 	},
 	'8ball': function (arg, user, room) {
-		var text = this.canUse('8ball', room, user) || room === user ? '' : '/pm ' + user.id + ', ';
+		var text = user.canUse('8ball', room) || room === user ? '' : '/pm ' + user.id + ', ';
 		var rand = ~~(20 * Math.random());
 
 		switch (rand) {
@@ -579,7 +575,7 @@ exports.commands = {
 		if (Config.serverid !== 'showdown') return false;
 		var text = '';
 		if (room.id === 'espaol') {
-			if (!this.canUse('guia', room, user)) text += '/pm ' + user.id + ', ';
+			if (!user.canUse('guia', room)) text += '/pm ' + user.id + ', ';
 		} else if (room !== user) {
 			return false;
 		}
@@ -598,7 +594,7 @@ exports.commands = {
 		if (Config.serverid !== 'showdown') return false;
 		var text = '';
 		if (room.id === 'thestudio') {
-			if (!this.canUse('studio', room, user)) text += '/pm ' + user.id + ', ';
+			if (!user.canUse('studio', room)) text += '/pm ' + user.id + ', ';
 		} else if (room !== user) {
 			return false;
 		}
@@ -612,7 +608,7 @@ exports.commands = {
 		if (Config.serverid !== 'showdown') return false;
 		var text = '';
 		if (room.id === 'wifi') {
-			if (!this.canUse('wifi', room, user)) text += '/pm ' + user.id + ', ';
+			if (!user.canUse('wifi', room)) text += '/pm ' + user.id + ', ';
 		} else if (room !== user) {
 			return false;
 		}
@@ -769,7 +765,7 @@ exports.commands = {
 		if (Config.serverid !== 'showdown') return false;
 		var text = '';
 		if (room.id === 'monotype') {
-			if (!this.canUse('monotype', room, user)) text += '/pm ' + user.id + ', ';
+			if (!user.canUse('monotype', room)) text += '/pm ' + user.id + ', ';
 		} else if (room !== user) {
 			return false;
 		}
@@ -789,7 +785,7 @@ exports.commands = {
 		if (Config.serverid !== 'showdown') return false;
 		var text = '';
 		if (room.id === 'survivor') {
-			if (!this.canUse('survivor', room, user)) text += '/pm ' + user.id + ', ';
+			if (!user.canUse('survivor', room)) text += '/pm ' + user.id + ', ';
 		} else if (room !== user) {
 			return false;
 		}
@@ -810,7 +806,7 @@ exports.commands = {
 		if (Config.serverid !== 'showdown') return false;
 		var text = '';
 		if (room === 'thehappyplace') {
-			if (!this.canUse('happy', room, user)) text += '/pm ' + user.id + ', ';
+			if (!user.canUse('happy', room)) text += '/pm ' + user.id + ', ';
 		} else if (room !== user) {
 			return false;
 		}
@@ -834,7 +830,7 @@ exports.commands = {
 
 	b: 'buzz',
 	buzz: function (arg, user, room) {
-		if (this.buzzed || !this.canUse('buzz', room, user) || room === user) return false;
+		if (this.buzzed || !user.canUse('buzz', room) || room === user) return false;
 
 		this.say(room, '**' + user.name + ' has buzzed in!**');
 		this.buzzed = user;
