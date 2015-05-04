@@ -40,7 +40,6 @@ class User {
 	}
 
 	canUse(cmd, room) {
-		if (room === this && cmd !== 'blacklist') return false;
 		var settings = Parse.settings[cmd];
 		var roomid = room.id;
 		if (!settings || !settings[roomid]) {

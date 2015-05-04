@@ -20,18 +20,18 @@ exports.commands = {
 
 	credits: 'about',
 	about: function (arg, user, room) {
-		var text = user.hasRank(room, '#') || room === user ? '' : '/pm ' + user.id + ', ';
+		var text = (room === user || user.hasRank(room, '#')) ? '' : '/pm ' + user.id + ', ';
 		text += '**Pokémon Showdown Bot** user: Quinella, TalkTakesTime, and Morfent';
 		this.say(room, text);
 	},
 	git: function (arg, user, room) {
-		var text = user.isExcepted ? '/pm ' + user.id + ', ' : '';
+		var text = (room === user || user.isExcepted) ? '' : '/pm ' + user.id + ', ';
 		text += '**Pokemon Showdown Bot** source code: ' + Config.fork;
 		this.say(room, text);
 	},
 	help: 'guide',
 	guide: function (arg, user, room) {
-		var text = user.hasRank(room, '#') || room === user ? '' : '/pm ' + user.id + ', ';
+		var text = (room === user || user.hasRank(room, '#'))  ? '' : '/pm ' + user.id + ', ';
 		if (Config.botguide) {
 			text += 'A guide on how to use this bot can be found here: ' + Config.botguide;
 		} else {
@@ -84,7 +84,7 @@ exports.commands = {
 		}
 	},
 	uptime: function (arg, user, room) {
-		var text = !user.isExcepted ? '/pm ' + user.id + ', **Uptime:** ' : '**Uptime:** ';
+		var text = ((room === user || user.isExcepted) ? '' : '/pm ' + user.id + ', ') + '**Uptime:** ';
 		var divisors = [52, 7, 24, 60, 60];
 		var units = ['week', 'day', 'hour', 'minute', 'second'];
 		var buffer = [];
@@ -126,7 +126,7 @@ exports.commands = {
 
 	settings: 'set',
 	set: function (arg, user, room) {
-		if (!user.hasRank(room, '#') || room === user) return false;
+		if (room === user || !user.hasRank(room, '#')) return false;
 
 		var settable = {
 			autoban: 1,
@@ -239,7 +239,7 @@ exports.commands = {
 	ban: 'autoban',
 	ab: 'autoban',
 	autoban: function (arg, user, room) {
-		if (!user.canUse('autoban', room)) return false;
+		if (room === user || !user.canUse('autoban', room)) return false;
 		if (!Users.self.hasRank(room, '@')) return this.say(room, Users.self.name + ' requires rank of @ or higher to (un)blacklist.');
 		if (!toId(arg)) return this.say(room, 'You must specify at least one user to blacklist.');
 
@@ -278,7 +278,7 @@ exports.commands = {
 	unban: 'unautoban',
 	unab: 'unautoban',
 	unautoban: function (arg, user, room) {
-		if (!user.canUse('autoban', room)) return false;
+		if (room === user || !user.canUse('autoban', room)) return false;
 		if (!Users.self.hasRank(room, '@')) return this.say(room, Users.self.name + ' requires rank of @ or higher to (un)blacklist.');
 		if (!toId(arg)) return this.say(room, 'You must specify at least one user to unblacklist.');
 
@@ -312,7 +312,7 @@ exports.commands = {
 	},
 	rab: 'regexautoban',
 	regexautoban: function (arg, user, room) {
-		if (!user.isRegexWhitelisted || !user.canUse('autoban', room)) return false;
+		if (room === user || !user.isRegexWhitelisted || !user.canUse('autoban', room)) return false;
 		if (!Users.self.hasRank(room, '@')) return this.say(room, Users.self.name + ' requires rank of @ or higher to (un)blacklist.');
 		if (!arg) return this.say(room, 'You must specify a regular expression to (un)blacklist.');
 
@@ -331,7 +331,7 @@ exports.commands = {
 	},
 	unrab: 'unregexautoban',
 	unregexautoban: function (arg, user, room) {
-		if (!user.isRegexWhitelisted || !user.canUse('autoban', room)) return false;
+		if (room === user || !user.isRegexWhitelisted || !user.canUse('autoban', room)) return false;
 		if (!Users.self.hasRank(room, '@')) return this.say(room, Users.self.name + ' requires rank of @ or higher to (un)blacklist.');
 		if (!arg) return this.say(room, 'You must specify a regular expression to (un)blacklist.');
 
@@ -346,7 +346,7 @@ exports.commands = {
 	vab: 'viewblacklist',
 	viewautobans: 'viewblacklist',
 	viewblacklist: function (arg, user, room) {
-		if (!user.canUse('autoban', room)) return false;
+		if (room === user || !user.canUse('autoban', room)) return false;
 
 		var text = '';
 		var roomid = room.id;
@@ -447,11 +447,11 @@ exports.commands = {
 
 	tell: 'say',
 	say: function (arg, user, room) {
-		if (!user.canUse('say', room)) return false;
+		if (room === user || !user.canUse('say', room)) return false;
 		this.say(room, stripCommands(arg) + ' (' + user.name + ' said this)');
 	},
 	joke: function (arg, user, room) {
-		if (!user.canUse('joke', room)) return false;
+		if (room === user || !user.canUse('joke', room)) return false;
 		var self = this;
 
 		var reqOpt = {
@@ -473,7 +473,7 @@ exports.commands = {
 	},
 	usage: 'usagestats',
 	usagestats: function (arg, user, room) {
-		var text = user.canUse('usagestats', room) ? '' : '/pm ' + user.id + ', ';
+		var text = (room === user || user.canUse('usagestats', room)) ? '' : '/pm ' + user.id + ', ';
 		text += 'http://www.smogon.com/stats/2015-03/';
 		this.say(room, text);
 	},
@@ -494,7 +494,7 @@ exports.commands = {
 		this.say(room, text);
 	},
 	'8ball': function (arg, user, room) {
-		var text = user.canUse('8ball', room) ? '' : '/pm ' + user.id + ', ';
+		var text = (room === user || user.canUse('8ball', room)) ? '' : '/pm ' + user.id + ', ';
 		var rand = ~~(20 * Math.random());
 
 		switch (rand) {
@@ -830,7 +830,7 @@ exports.commands = {
 
 	b: 'buzz',
 	buzz: function (arg, user, room) {
-		if (this.buzzed || !user.canUse('buzz', room)) return false;
+		if (this.buzzed || room === user || !user.canUse('buzz', room)) return false;
 
 		this.say(room, '**' + user.name + ' has buzzed in!**');
 		this.buzzed = user;
@@ -840,7 +840,7 @@ exports.commands = {
 		}.bind(this), 7 * 1000, room, user.name + ', your time to answer is up!');
 	},
 	reset: function (arg, user, room) {
-		if (!this.buzzed || !user.hasRank(room, '%') || room === user) return false;
+		if (!this.buzzed || room === user || !user.hasRank(room, '%')) return false;
 		clearTimeout(this.buzzer);
 		this.buzzed = '';
 		this.say(room, 'The buzzer has been reset.');
