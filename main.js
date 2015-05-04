@@ -195,6 +195,8 @@ var connect = function (retry) {
 			error('connection closed: ' + reason + ' (' + code + ')');
 			info('retrying in one minute');
 
+			Users.users = Object.create(null);
+			Rooms.rooms.clear();
 			setTimeout(function () {
 				connect(true);
 			}, 60000);
