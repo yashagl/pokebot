@@ -372,17 +372,18 @@ exports.commands = {
 	},
 	banphrase: 'banword',
 	banword: function (arg, user, room) {
-		if (!user.canUse('banword', room)) return false;
-		if (!this.settings.bannedphrases) this.settings.bannedphrases = {};
-		arg = arg.trim().toLowerCase();
-		if (!arg) return false;
 		var tarRoom = room.id;
-
 		if (room === user) {
 			if (!user.isExcepted) return false;
 			tarRoom = 'global';
+		} else if (!user.canUse('banword', room)) {
+			return false;
 		}
 
+		arg = arg.trim().toLowerCase();
+		if (!arg) return false;
+
+		if (!this.settings.bannedphrases) this.settings.bannedphrases = {};
 		if (!this.settings.bannedphrases[tarRoom]) this.settings.bannedphrases[tarRoom] = {};
 		if (arg in this.settings.bannedphrases[tarRoom]) return this.say(room, "Phrase \"" + arg + "\" is already banned.");
 		this.settings.bannedphrases[tarRoom][arg] = 1;
@@ -391,15 +392,16 @@ exports.commands = {
 	},
 	unbanphrase: 'unbanword',
 	unbanword: function (arg, user, room) {
-		if (!user.canUse('banword', room)) return false;
-		arg = arg.trim().toLowerCase();
-		if (!arg) return false;
 		var tarRoom = room.id;
-
 		if (room === user) {
 			if (!user.isExcepted) return false;
 			tarRoom = 'global';
+		} else if (!user.canUse('banword', room)) {
+			return false;
 		}
+
+		arg = arg.trim().toLowerCase();
+		if (!arg) return false;
 
 		if (!this.settings.bannedphrases || !this.settings.bannedphrases[tarRoom] || !(arg in this.settings.bannedphrases[tarRoom])) 
 			return this.say(room, "Phrase \"" + arg + "\" is not currently banned.");
@@ -412,13 +414,12 @@ exports.commands = {
 	viewbannedphrases: 'viewbannedwords',
 	vbw: 'viewbannedwords',
 	viewbannedwords: function (arg, user, room) {
-		if (!user.canUse('banword', room)) return false;
-		arg = arg.trim().toLowerCase();
 		var tarRoom = room.id;
-
 		if (room === user) {
 			if (!user.isExcepted) return false;
 			tarRoom = 'global';
+		} else if (!user.canUse('banword', room)) {
+			return false;
 		}
 
 		var text = "";
