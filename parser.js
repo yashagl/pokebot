@@ -36,15 +36,17 @@ exports.parse = {
 	blacklistRegexes: {},
 
 	data: function (data) {
-		if (data.substr(0, 1) === 'a') {
-			data = JSON.parse(data.substr(1));
-			if (Array.isArray(data)) {
-				for (let i = 0, len = data.length; i < len; i++) {
-					this.splitMessage(data[i]);
-				}
-			} else {
-				this.splitMessage(data);
+		// CloudFlare can go to hell
+		if (data.substr(0, 15) === '<!DOCTYPE html>') return false;
+		// incoming messages from the server are typically in the form of "a['room|message']"
+		if (data.substr(0, 1) !== 'a') return false;
+		data = JSON.parse(data.substr(1));
+		if (Array.isArray(data)) {
+			for (let i = 0, len = data.length; i < len; i++) {
+				this.splitMessage(data[i]);
 			}
+		} else {
+			this.splitMessage(data);
 		}
 	},
 	splitMessage: function (message) {
