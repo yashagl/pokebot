@@ -211,7 +211,7 @@ var connect = function (retry) {
 	});
 
 	// The connection itself
-	var id = ~~(Math.random() * 900) + 100;
+	var id = ~~(Math.random() * 1000);
 	var chars = 'abcdefghijklmnopqrstuvwxyz0123456789_';
 	var str = '';
 	for (var i = 0, l = chars.length; i < 8; i++) {
