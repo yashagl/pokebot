@@ -202,11 +202,15 @@ var connect = function (retry) {
 			}, 60000);
 		});
 
-		con.on('message', function (message) {
-			if (message.type === 'utf8') {
-				recv(message.utf8Data);
-				Parse.data(message.utf8Data);
-			}
+		con.on('message', function (response) {
+			if (response.type !== 'utf8') return false;
+			var message = response.utf8Data;
+			recv(message);
+
+			// SockJS messages sent from the server begin with 'a'
+			// this filters out other SockJS response types (heartbeats in particular)
+			if (message.charAt(0) !== 'a') return false;
+			Parse.data(message);
 		});
 	});
 
