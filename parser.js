@@ -9,6 +9,7 @@
  */
 
 var fs = require('fs');
+var http = require('http');
 var https = require('https');
 var url = require('url');
 
@@ -36,10 +37,7 @@ exports.parse = {
 	blacklistRegexes: {},
 
 	data: function (data) {
-		// CloudFlare can go to hell
-		if (data.substr(0, 15) === '<!DOCTYPE html>') return false;
-		// incoming messages from the server are typically in the form of "a['room|message']"
-		if (data.substr(0, 1) !== 'a') return false;
+		if (data.charAt(0) !== 'a') return false;
 		data = JSON.parse(data.substr(1));
 		if (Array.isArray(data)) {
 			for (let i = 0, len = data.length; i < len; i++) {
@@ -312,16 +310,23 @@ exports.parse = {
 		this.blacklistRegexes[roomid] = new RegExp(buffer.join('|'), 'i');
 	},
 	uploadToHastebin: function (toUpload, callback) {
+		if (typeof callback !== 'function') return false;
 		var reqOpts = {
-			hostname: "hastebin.com",
-			method: "POST",
+			hostname: 'hastebin.com',
+			method: 'POST',
 			path: '/documents'
 		};
 
-		var req = require('http').request(reqOpts, function (res) {
+		var req = http.request(reqOpts, function (res) {
 			res.on('data', function (chunk) {
-				if (callback && typeof callback === "function") callback("hastebin.com/raw/" + JSON.parse(chunk.toString())['key']);
+				chunk = chunk.toString();
+				if (chunk.substr(0, 15) === '<!DOCTYPE html>') return callback('Error connecting to Hastebin. Is the site down?');
+				var filename = JSON.parse(chunk).key;
+				callback('http://hastebin.com/raw/' + filename);
 			});
+		});
+		req.on('error', function (e) {
+			callback('Error uploading to Hastebin: ' + e.message);
 		});
 
 		req.write(toUpload);
@@ -561,6 +566,8 @@ exports.parse = {
 					callback('Invalid response', data);
 				}
 			});
+		}).on('error', function (e) {
+			callback('Error connecting to Google Docs: ' + e.message);
 		});
 	},
 	getDocCsv: function (meta, callback) {
@@ -572,6 +579,8 @@ exports.parse = {
 			res.on('end', function (end) {
 				callback(data);
 			});
+		}).on('error', function (e) {
+			callback('Error connecting to Google Docs: ' + e.message);
 		});
 	}
 };
