@@ -22,12 +22,11 @@ var addRoom = Rooms.add = function (roomid, type) {
 Rooms.join = function () {
 	for (let i = 0; i < Config.rooms.length; i++) {
 		let room = toId(Config.rooms[i]);
-		if (room === 'lobby' && Config.serverid === 'showdown') continue;
 		send('|/join ' + room);
 	}
 	for (let i = 0; i < Config.privaterooms.length; i++) {
 		let room = toId(Config.privaterooms[i]);
-		if (room === 'lobby' && Config.serverid === 'showdown') continue;
+		if (room === 'loby' && Config.serverid === 'showdown') continue;
 		send('|/join ' + room);
 	}
 };
@@ -77,6 +76,7 @@ class Room {
 	onLeave(username) {
 		var user = Users.get(username);
 		this.users.delete(user.id);
+		user.rooms.delete(this.id);
 		if (user.rooms.size) return user;
 		user.destroy();
 		return null;
