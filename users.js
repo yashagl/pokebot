@@ -22,48 +22,53 @@ var addUser = Users.add = function (username, room) {
 };
 
 class User {
-	constructor(username, roomid) {
+	constructor (username, roomid) {
 		this.name = username.substr(1);
 		this.id = toId(this.name);
-		this.isSelf = (this.id === toId(Config.nick));
-		this.isExcepted = Config.excepts.includes(this.id);
-		this.isWhitelisted = Config.whitelist.includes(this.id);
-		this.isRegexWhitelisted = Config.regexautobanwhitelist.includes(this.id);
 		this.rooms = new Map();
 		if (roomid) this.rooms.set(roomid, username.charAt(0));
 	}
 
-	hasRank(room, tarGroup) {
-		if (this.isExcepted) return true;
-		var group = room.users.get(this.id);
-		return Config.groups.indexOf(group) >= Config.groups.indexOf(tarGroup);
+	isExcepted () {
+		return Config.excepts.includes(this.id);
 	}
 
-	canUse(cmd, room) {
+	isWhitelisted () {
+		return Config.whitelist.includes(this.id);
+	}
+
+	isRegexWhitelisted () {
+		return Config.regexautobanwhitelist.includes(this.id);
+	}
+
+	hasRank (roomid, tarGroup) {
+		if (this.isExcepted()) return true;
+		var group = this.rooms.get(roomid) || roomid; // PM messages use the roomid parameter as the user's group
+		return Config.groups[group] >= Config.groups[tarGroup];
+	}
+
+	canUse (cmd, roomid) {
+		if (this.isExcepted()) return true;
 		var settings = Parse.settings[cmd];
-		var roomid = room.id;
 		if (!settings || !settings[roomid]) {
-			return this.hasRank(room, (cmd === 'autoban' || cmd === 'blacklist') ? '#' : Config.defaultrank);
+			return this.hasRank(roomid, (cmd === 'autoban' || cmd === 'blacklist') ? '#' : Config.defaultrank);
 		}
 
 		var setting = settings[roomid];
 		if (setting === true) return true;
-		return this.hasRank(room, setting);
+		return this.hasRank(roomid, setting);
 	}
 
-	rename(username) {
+	rename (username) {
 		var oldid = this.id;
 		delete users[oldid];
 		this.id = toId(username);
 		this.name = username.substr(1);
-		this.isExcepted = Config.excepts.includes(this.id);
-		this.isWhitelisted = Config.whitelist.includes(this.id);
-		this.isRegexWhitelisted = Config.regexautobanwhitelist.includes(this.id);
 		users[this.id] = this;
 		return this;
 	}
 
-	destroy() {
+	destroy () {
 		this.rooms.forEach(function (group, roomid) {
 			var room = Rooms.get(roomid);
 			room.users.delete(this.id);
