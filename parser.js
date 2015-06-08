@@ -176,32 +176,33 @@ exports.parse = {
 				let username = spl[2];
 				let user = Users.get(username);
 				if (!user) return false; // various "chat" responses contain other data
-				if (user.isSelf) return false;
-				if (this.isBlacklisted(user.id, room.id)) return this.say(room, '/roomban ' + user.id + ', Blacklisted user');
+				if (user === Users.self) return false;
+				if (this.isBlacklisted(user.id, room.id)) this.say(room, '/roomban ' + user.id + ', Blacklisted user');
 
 				spl = spl.slice(3).join('|');
-				if (!user.hasRank(room, '%')) this.processChatData(user.id, room.id, spl);
+				if (!user.hasRank(room.id, '%')) this.processChatData(user.id, room.id, spl);
 				this.chatMessage(spl, user, room);
 				break;
 			case 'c:':
 				let username = spl[3];
 				let user = Users.get(username);
 				if (!user) return false; // various "chat" responses contain other data
-				if (user.isSelf) return false;
-				if (this.isBlacklisted(user.id, room.id)) return this.say(room, '/roomban ' + user.id + ', Blacklisted user');
+				if (user === Users.self) return false;
+				
 
 				spl = spl.slice(4).join('|');
-				if (!user.hasRank(room, '%')) this.processChatData(user.id, room.id, spl);
+				if (!user.hasRank(room.id, '%')) this.processChatData(user.id, room.id, spl);
 				this.chatMessage(spl, user, room);
 				break;
 			case 'pm':
 				let username = spl[2];
 				let user = Users.get(username);
+				let group = username.charAt(0);
 				if (!user) user = Users.add(username);
-				if (user.isSelf) return false;
+				if (user === Users.self) return false;
 
 				spl = spl.slice(4).join('|');
-				if (spl.startsWith('/invite ') && Config.groups.indexOf(username.charAt(0)) >= Config.groups.indexOf('%') &&
+				if (spl.startsWith('/invite ') && user.hasRank(group, '%') &&
 						!(toId(spl.substr(8)) === 'lobby' && Config.serverid === 'showdown')) {
 					return send('|/join ' + spl.substr(8));
 				}
@@ -210,25 +211,24 @@ exports.parse = {
 			case 'N':
 				let username = spl[2];
 				let oldid = spl[3];
-				let user = room.onRename(username, oldid);
-				if (this.isBlacklisted(user.id, room.id)) return this.say(room, '/roomban ' + user.id + ', Blacklisted user');
-				this.updateSeen(oldid, spl[1], user.id);
+				
+				
 				break;
 			case 'J': case 'j':
 				let username = spl[2];
-				let user = room.onJoin(username, username.charAt(0));
-				if (user.isSelf) return false;
-				if (this.isBlacklisted(user.id, room.id)) return this.say(room, '/roomban ' + user.id + ', Blacklisted user');
-				this.updateSeen(user.id, spl[1], room.id);
+				
+				if (user === Users.self) return false;
+				
+				
 				break;
 			case 'l': case 'L':
 				let username = spl[2];
-				let user = room.onLeave(username);
+				
 				if (user) {
-					if (user.isSelf) return false;
-					this.updateSeen(user.id, spl[1], room.id);
+					if (user === Users.self) return false;
+					
 				} else {
-					this.updateSeen(toId(username), spl[1], room.id);
+					
 				}
 				break;
 		}
@@ -319,9 +319,9 @@ exports.parse = {
 
 		var req = http.request(reqOpts, function (res) {
 			res.on('data', function (chunk) {
-				chunk = chunk.toString();
-				if (chunk.substr(0, 15) === '<!DOCTYPE html>') return callback('Error connecting to Hastebin. Is the site down?');
-				var filename = JSON.parse(chunk).key;
+				// CloudFlare can go to hell for sending the body in a header request like this
+				if (typeof chunk === 'string' && chunk.substr(0, 15) === '<!DOCTYPE html>') return callback('Error uploading to Hastebin.');
+				var filename = JSON.parse(chunk.toString()).key;
 				callback('http://hastebin.com/raw/' + filename);
 			});
 		});
@@ -353,7 +353,7 @@ exports.parse = {
 		roomData.times.push(now);
 
 		// this deals with punishing rulebreakers, but note that the bot can't think, so it might make mistakes
-		if (Config.allowmute && Users.self.hasRank(Rooms.get(roomid), '%') && Config.whitelist.indexOf(userid) < 0) {
+		if (Config.allowmute && Users.self.hasRank(roomid, '%') && Config.whitelist.indexOf(userid) < 0) {
 			let useDefault = !(this.settings.modding && this.settings.modding[roomid]);
 			let pointVal = 0;
 			let muteMessage = '';
@@ -363,8 +363,8 @@ exports.parse = {
 			if ((useDefault || !this.settings.banword[roomid]) && pointVal < 2) {
 				let bannedPhraseSettings = this.settings.bannedphrases;
 				let bannedPhrases = !!bannedPhraseSettings ? (Object.keys(bannedPhraseSettings[roomid] || {})).concat(Object.keys(bannedPhraseSettings.global || {})) : [];
-				for (let i = 0; i < bannedPhrases.length; i++) {
-					if (msg.toLowerCase().indexOf(bannedPhrases[i]) > -1) {
+				for (let bannedPhrase of bannedPhrases) {
+					if (msg.toLowerCase().indexOf(bannedPhrase) > -1) {
 						pointVal = 2;
 						muteMessage = ', Automated response: your message contained a banned phrase';
 						break;
@@ -412,10 +412,10 @@ exports.parse = {
 				}
 				if (Config.privaterooms.indexOf(roomid) > -1 && cmd === 'warn') cmd = 'mute'; // can't warn in private rooms
 				// if the bot has % and not @, it will default to hourmuting as its highest level of punishment instead of roombanning
-				if (roomData.points >= 4 && !Users.self.hasRank(Rooms.get(roomid), '@')) cmd = 'hourmute';
+				if (roomData.points >= 4 && !Users.self.hasRank(roomid, '@')) cmd = 'hourmute';
 				if (userData.zeroTol > 4) { // if zero tolerance users break a rule they get an instant roomban or hourmute
 					muteMessage = ', Automated response: zero tolerance user';
-					cmd = Users.self.hasRank(Rooms.get(roomid), '@') ? 'roomban' : 'hourmute';
+					cmd = Users.self.hasRank(roomid, '@') ? 'roomban' : 'hourmute';
 				}
 				if (roomData.points > 1) userData.zeroTol++; // getting muted or higher increases your zero tolerance level (warns do not)
 				roomData.lastAction = now;
@@ -437,8 +437,8 @@ exports.parse = {
 				let newTimes = [];
 				let now = Date.now();
 				let times = roomData.times;
-				for (let i = 0, len = times.length; i < len; i++) {
-					if (now - times[i] < 5 * 1000) newTimes.push(times[i]);
+				for (let time of times) {
+					if (now - time < 5 * 1000) newTimes.push(time);
 				}
 				newTimes.sort(function (a, b) {
 					return a - b;
@@ -539,18 +539,18 @@ exports.parse = {
 		var uncache = [require.resolve(root)];
 		do {
 			let newuncache = [];
-			for (let i = 0; i < uncache.length; ++i) {
-				if (require.cache[uncache[i]]) {
+			for (let i of uncache) {
+				if (require.cache[i]) {
 					newuncache.push.apply(newuncache,
-						require.cache[uncache[i]].children.map(function (module) {
+						require.cache[i].children.map(function (module) {
 							return module.filename;
 						})
 					);
-					delete require.cache[uncache[i]];
+					delete require.cache[i];
 				}
 			}
 			uncache = newuncache;
-		} while (uncache.length > 0);
+		} while (uncache.length);
 	},
 	getDocMeta: function (id, callback) {
 		https.get('https://www.googleapis.com/drive/v2/files/' + id + '?key=' + Config.googleapikey, function (res) {
